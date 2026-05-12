@@ -7,11 +7,14 @@ import {
   getTelegramRedirectUri,
   requireTelegramEnv
 } from "@/lib/telegram";
+import { normalizeLocale } from "@/lib/i18n";
 
 export async function GET(request: Request) {
   try {
     const { clientId } = requireTelegramEnv();
-    const origin = new URL(request.url).origin;
+    const url = new URL(request.url);
+    const origin = url.origin;
+    const locale = normalizeLocale(url.searchParams.get("locale") || "ua");
     const redirectUri = getTelegramRedirectUri(origin);
     const state = createState();
     const pkce = createPkcePair();
@@ -25,8 +28,9 @@ export async function GET(request: Request) {
       path: "/"
     };
 
-    cookieStore.set("tg_state", state, cookieOptions);
-    cookieStore.set("tg_code_verifier", pkce.verifier, cookieOptions);
+    cookieStore.set("tg_oidc_state", state, cookieOptions);
+    cookieStore.set("tg_oidc_verifier", pkce.verifier, cookieOptions);
+    cookieStore.set("tg_oidc_locale", locale, cookieOptions);
 
     return NextResponse.redirect(
       buildTelegramAuthUrl({

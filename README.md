@@ -11,9 +11,9 @@ The project now contains:
 - onboarding wizard with file-based profile storage;
 - Telegram Mini App login with backend HMAC validation of `initData`;
 - multi-language UI: Ukrainian default, Russian, Polish and English;
-- Hutko/PUMB subscription checkout and callback activation;
+- WayForPay subscription checkout and callback activation;
 - Telegram bot notifications for orders, TTN, and subscription billing events;
-- existing GS3 product checkout, dynamic sensor/transponder order pricing, Hutko payment, Nova Poshta/Ukrposhta TTN generation and 4-mode photo AI analysis.
+- existing GS3 product checkout, dynamic sensor/transponder order pricing, WayForPay payment, Nova Poshta/Ukrposhta TTN generation and 4-mode photo AI analysis.
 
 ## Routes
 
@@ -24,7 +24,7 @@ The project now contains:
 /ua                   -> SaaS landing, Ukrainian default
 /ua/dashboard         -> realtime CGM + AI voice doctor + photo AI
 /ua/onboarding        -> onboarding wizard
-/ua/pricing           -> subscription plans + Hutko checkout + GS3 product order form
+/ua/pricing           -> subscription plans + WayForPay checkout
 /ua/mini-app          -> Telegram Mini App login test page
 /ru, /pl, /en         -> same structure in other languages
 ```
@@ -41,9 +41,9 @@ The project now contains:
 /api/auth/telegram/miniapp       POST Telegram Mini App initData validation
 /api/subscriptions/create        POST create free or paid subscription checkout
 /api/subscriptions/status        GET  read subscription by ID
-/api/subscriptions/invoice       POST admin renewal invoice through Hutko
-/api/payments/hutko/create       POST existing product checkout
-/api/payments/hutko/callback     POST product + subscription payment callback
+/api/subscriptions/invoice       POST admin renewal invoice through WayForPay
+/api/payments/wayforpay/create  POST default product checkout
+/api/payments/wayforpay/callback POST product + subscription payment callback
 /api/delivery/ttn/create         POST admin TTN creation
 ```
 
@@ -83,27 +83,43 @@ CGM_AI_PREDICTION=false
 
 Set `CGM_AI_PREDICTION=true` only when you want `/api/cgm/predict` to ask OpenAI to refine the mock prediction text.
 
-For Hutko/PUMB:
+For WayForPay:
 
 ```bash
-HUTKO_MERCHANT_ID=
-HUTKO_SECRET_KEY=
-HUTKO_API_DOMAIN=pay.hutko.org
-HUTKO_SUCCESS_URL=https://your-domain.com/ua/pricing?payment=success
-HUTKO_CALLBACK_URL=https://your-domain.com/api/payments/hutko/callback
+WAYFORPAY_USE_TEST_CREDENTIALS=false
+WAYFORPAY_MERCHANT_ACCOUNT=
+WAYFORPAY_MERCHANT_SECRET_KEY=
+WAYFORPAY_MERCHANT_DOMAIN_NAME=your-domain.com
+WAYFORPAY_RETURN_URL=https://your-domain.com/ua?payment=success
+WAYFORPAY_SERVICE_URL=https://your-domain.com/api/payments/wayforpay/callback
 ```
 
-For Telegram bot notifications and Telegram Mini App login:
+Legacy Hutko/PUMB variables can remain in `.env.local` if you still want to test `/api/payments/hutko/*`.
+
+For Telegram SaaS auth, bot notifications and Mini App login:
 
 ```bash
+# SaaS session cookie
+AUTH_SESSION_SECRET=replace-with-long-random-value
+AUTH_SESSION_MAX_AGE_SECONDS=2592000
+AUTH_REQUIRE_TELEGRAM=false
+
+# Website Login with Telegram via OIDC + PKCE
+TELEGRAM_CLIENT_ID=
+TELEGRAM_CLIENT_SECRET=
+TELEGRAM_REDIRECT_URI=https://your-domain.com/api/auth/telegram/callback
+
+# Mini App signed initData validation
 TELEGRAM_BOT_TOKEN=
 TELEGRAM_MINI_APP_BOT_TOKEN=
+TELEGRAM_INITDATA_MAX_AGE_SECONDS=86400
+
+# Order/subscription notifications
 TELEGRAM_ORDER_CHAT_ID=
 TELEGRAM_ORDER_NOTIFICATIONS=true
-TELEGRAM_INITDATA_MAX_AGE_SECONDS=86400
 ```
 
-`TELEGRAM_MINI_APP_BOT_TOKEN` is optional if it is the same as `TELEGRAM_BOT_TOKEN`.
+`TELEGRAM_MINI_APP_BOT_TOKEN` is optional if it is the same as `TELEGRAM_BOT_TOKEN`. Telegram login is optional by default: visitors can use the landing, product order form, onboarding and CGM dashboard in guest/demo mode. After either Mini App or OIDC login, the app creates an `app_session` HTTP-only cookie and a legacy `tg_session` cookie. Set `AUTH_REQUIRE_TELEGRAM=true` only if you want to make `/:locale/dashboard` and `/:locale/onboarding` protected.
 
 For delivery TTN generation:
 
@@ -121,6 +137,23 @@ UKRPOSHTA_COUNTERPARTY_UUID=
 UKRPOSHTA_SENDER_UUID=
 UKRPOSHTA_SENDER_ADDRESS_ID=
 ```
+
+
+## Telegram auth architecture
+
+Implemented routes:
+
+```txt
+GET  /api/auth/telegram/start?locale=ua
+GET  /api/auth/telegram/oidc/start?locale=ua
+GET  /api/auth/telegram/callback
+GET  /api/auth/telegram/oidc/callback
+POST /api/auth/telegram/miniapp
+GET  /api/auth/me
+POST /api/auth/logout
+```
+
+Website auth uses Telegram OIDC with `state` and PKCE cookies. Mini App auth validates `Telegram.WebApp.initData` on the server using the bot token. Both flows upsert a file-store SaaS user in `.data/users`, then issue a signed HTTP-only `app_session` cookie. Middleware allows guest access by default; it only protects dashboard/onboarding when `AUTH_REQUIRE_TELEGRAM=true`.
 
 ## CGM prediction engine
 
@@ -153,19 +186,19 @@ transponder.unitPriceUah = 500
 tapeGift.minSensorQuantity = 2
 ```
 
-The product order form now supports any sensor quantity from 1 to 100, an optional transponder checkbox, tiered sensor pricing (first sensor 900 UAH, second and following sensors 800 UAH each), and automatic free tapes for orders with 2 or more sensors. The same `calculateProductOrder()` helper is used by the client form and `/api/payments/hutko/create`, so the UI total and Hutko checkout amount stay in sync.
+The product order form now supports any sensor quantity from 1 to 100, an optional transponder checkbox, tiered sensor pricing (first sensor 900 UAH, second and following sensors 800 UAH each), and automatic free tapes for orders with 2 or more sensors. The same `calculateProductOrder()` helper is used by the client form and `/api/payments/wayforpay/create`, so the UI total and WayForPay checkout amount stay in sync. The Hutko route is still present as legacy/fallback code.
 
 ## Subscription billing model
 
-Hutko is used as the only payment provider. The code implements subscriptions as:
+WayForPay is used as the default payment provider for paid plans. The code implements subscriptions as:
 
 1. user chooses a plan on `/ua/pricing`;
-2. `/api/subscriptions/create` creates a subscription record and Hutko checkout for paid plans;
-3. Hutko sends callback to `/api/payments/hutko/callback`;
+2. `/api/subscriptions/create` creates a subscription record and WayForPay checkout for paid plans;
+3. WayForPay sends callback to `/api/payments/wayforpay/callback`;
 4. callback verifies signature and activates the subscription;
 5. `/api/subscriptions/invoice` can be called by an admin/cron to issue renewal checkout links.
 
-This is production-shaped but still needs your real Hutko recurring-token specifics if PUMB provides tokenized autopay for your merchant account.
+The legacy Hutko/PUMB implementation remains in the project under `/api/payments/hutko/*`.
 
 ## Telegram Mini App login
 
@@ -194,4 +227,33 @@ The project uses file storage under `.data` for local/VPS demos:
 
 Use a real database for production serverless deployments.
 
-## sibionics-ai
+## WayForPay default payment provider
+
+WayForPay is now the default checkout provider for product orders and subscription billing. Hutko/PUMB code remains in the project under `lib/hutko.ts` and `/api/payments/hutko/*` as legacy/fallback integration.
+
+Default product checkout endpoint:
+
+```txt
+POST /api/payments/wayforpay/create
+```
+
+WayForPay callback endpoint:
+
+```txt
+POST /api/payments/wayforpay/callback
+```
+
+Local sandbox smoke test with WayForPay test merchant credentials:
+
+```bash
+npm run test:wayforpay
+```
+
+The script uses WayForPay public test merchant credentials by default:
+
+```env
+WAYFORPAY_MERCHANT_ACCOUNT=test_merch_n1
+WAYFORPAY_MERCHANT_SECRET_KEY=flk3409refn54t54t*FNJRET
+```
+
+For production, set `WAYFORPAY_USE_TEST_CREDENTIALS=false` and provide your real merchant credentials in `.env.local`.

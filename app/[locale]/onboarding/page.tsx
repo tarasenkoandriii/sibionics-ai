@@ -20,6 +20,7 @@ export default async function OnboardingPage({ params }: { params: Promise<{ loc
             <span className="kicker">wizard</span>
             <h1>{dict.onboarding.title}</h1>
             <p className="lead">{dict.onboarding.lead}</p>
+            <p className="optional-auth-note">Telegram login is optional. You can complete onboarding as a guest; login later to link the profile with Telegram.</p>
           </div>
         </section>
         <section className="section">

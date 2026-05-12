@@ -24,8 +24,12 @@ export default async function DashboardPage({ params }: { params: Promise<{ loca
               <span className="kicker">CGM SaaS</span>
               <h1>{dict.dashboard.title}</h1>
               <p className="lead">{dict.dashboard.lead}</p>
+              <p className="optional-auth-note">Telegram login is optional. Without login this dashboard works in demo/guest mode; login only saves the SaaS profile and Mini App session.</p>
             </div>
-            <a className="btn btn-secondary" href={localePath(locale, "pricing")}>{dict.common.pricing}</a>
+            <div className="hero-actions vertical-actions">
+              <a className="btn btn-secondary" href={localePath(locale, "pricing")}>{dict.common.pricing}</a>
+              <a className="btn btn-ghost" href={`/api/auth/telegram/oidc/start?locale=${locale}`}>Login Telegram optional</a>
+            </div>
           </div>
         </section>
 

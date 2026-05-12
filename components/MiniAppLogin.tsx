@@ -52,12 +52,13 @@ export function MiniAppLogin({ locale }: { locale: Locale }) {
       const response = await fetch("/api/auth/telegram/miniapp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ initData })
+        body: JSON.stringify({ initData, locale })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Telegram verification failed");
       setStatus(dict.miniApp.verified);
       setUser(data.user || user);
+      window.location.href = data.nextPath || `/${locale}/dashboard`;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Telegram error");
     } finally {

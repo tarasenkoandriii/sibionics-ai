@@ -1,0 +1,137 @@
+{
+  "test": "wayforpay-smoke-test",
+  "startedAt": "2026-05-12T08:29:48.250Z",
+  "steps": [
+    {
+      "name": "config",
+      "status": "ok",
+      "at": "2026-05-12T08:29:48.265Z",
+      "missing": [],
+      "amountMatchesItems": true
+    },
+    {
+      "name": "signatures",
+      "status": "ok",
+      "at": "2026-05-12T08:29:48.266Z",
+      "purchaseBaseString": "sibionics_ai_vercel_app;localhost;WFP-SMOKE-1778574588253;1778574588;1400;UAH;Sibionics GS3 test sensor;Sibionics GS3 test transponder;1;1;900;500",
+      "purchaseSignature": "5d3f9f151fc294d8527649df5416a437",
+      "checkStatusSignature": "5a510fd2fa6e5bbfa4a59f747d1a0a85",
+      "simulatedCallbackSignature": "2dd6830e0429c12a317b4c5a99375e10",
+      "serviceResponse": {
+        "orderReference": "WFP-SMOKE-1778574588253",
+        "status": "accept",
+        "time": 1778574588,
+        "signature": "ffca69dfc298845b07297f770dec62d3"
+      }
+    },
+    {
+      "name": "offline-purchase",
+      "status": "ok",
+      "at": "2026-05-12T08:29:49.146Z",
+      "endpoint": "https://secure.wayforpay.com/pay?behavior=offline",
+      "httpStatus": 200,
+      "response": {
+        "url": "https://secure.wayforpay.com/page?vkh=6a02e4fc-3cb0-4dd1-b053-0c3822d1dba8"
+      },
+      "paymentUrl": "https://secure.wayforpay.com/page?vkh=6a02e4fc-3cb0-4dd1-b053-0c3822d1dba8"
+    },
+    {
+      "name": "check-status",
+      "status": "ok",
+      "at": "2026-05-12T08:29:49.615Z",
+      "endpoint": "https://api.wayforpay.com/api",
+      "httpStatus": 200,
+      "request": {
+        "transactionType": "CHECK_STATUS",
+        "merchantAccount": "sibionics_ai_vercel_app",
+        "orderReference": "WFP-SMOKE-1778574588253",
+        "merchantSignature": "5a510fd2...",
+        "apiVersion": 2
+      },
+      "response": {
+        "merchantAccount": "sibionics_ai_vercel_app",
+        "reason": "Transaction in processing",
+        "reasonCode": 1131,
+        "orderReference": "WFP-SMOKE-1778574588253",
+        "amount": 1400,
+        "currency": "UAH",
+        "authCode": "",
+        "createdDate": 1778574588,
+        "processingDate": 1778574589,
+        "cardPan": "",
+        "cardType": "",
+        "issuerBankCountry": "",
+        "issuerBankName": "",
+        "transactionStatus": "InProcessing",
+        "refundAmount": 0,
+        "settlementDate": "",
+        "settlementAmount": 0,
+        "fee": 0,
+        "clientName": null,
+        "clientPhone": null,
+        "clientEmail": null,
+        "clientComment": null,
+        "merchantSignature": "120519a178d43a30a842637cfb423dce",
+        "products": [
+          {
+            "name": "Sibionics GS3 test sensor",
+            "price": 900,
+            "count": 1
+          },
+          {
+            "name": "Sibionics GS3 test transponder",
+            "price": 500,
+            "count": 1
+          }
+        ],
+        "RRN": "",
+        "prroLink": "",
+        "prroNumber": "",
+        "terminal": "",
+        "acquirer": ""
+      }
+    },
+    {
+      "name": "local-callback",
+      "status": "skipped",
+      "at": "2026-05-12T08:29:49.615Z",
+      "reason": "Set WAYFORPAY_TEST_RUN_LOCAL_CALLBACK=true to POST simulated callback to WAYFORPAY_SERVICE_URL."
+    }
+  ],
+  "config": {
+    "useTestCredentials": false,
+    "merchantAccount": "sibionics_ai_vercel_app",
+    "merchantSecretKey": "d801c***e4b4",
+    "merchantPasswordPresent": true,
+    "merchantPassword": "b68a3***9120",
+    "merchantDomainName": "localhost",
+    "purchaseUrl": "https://secure.wayforpay.com/pay",
+    "apiUrl": "https://api.wayforpay.com/api",
+    "returnUrl": "http://localhost:3000/ua?payment=success",
+    "serviceUrl": "http://localhost:3000/api/payments/wayforpay/callback",
+    "orderReference": "WFP-SMOKE-1778574588253",
+    "amount": "1400",
+    "currency": "UAH",
+    "products": [
+      {
+        "name": "Sibionics GS3 test sensor",
+        "count": 1,
+        "price": "900"
+      },
+      {
+        "name": "Sibionics GS3 test transponder",
+        "count": 1,
+        "price": "500"
+      }
+    ],
+    "amountByItems": "1400",
+    "amountMatchesItems": true
+  },
+  "result": "ok",
+  "envFilesLoaded": [
+    ".env.local"
+  ],
+  "paymentUrl": "https://secure.wayforpay.com/page?vkh=6a02e4fc-3cb0-4dd1-b053-0c3822d1dba8",
+  "finishedAt": "2026-05-12T08:29:49.615Z",
+  "durationMs": 1365
+}

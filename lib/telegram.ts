@@ -91,7 +91,10 @@ export async function verifyTelegramIdToken(idToken: string, clientId: string) {
   return result.payload as {
     sub: string;
     name?: string;
+    given_name?: string;
+    family_name?: string;
     preferred_username?: string;
+    username?: string;
     picture?: string;
     iat?: number;
     exp?: number;

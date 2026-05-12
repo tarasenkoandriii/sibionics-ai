@@ -1680,3 +1680,65 @@ h3 {
     max-height: 14rem;
   }
 }
+
+.auth-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.auth-pill {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(37, 99, 235, 0.18);
+  border-radius: 999px;
+  padding: 0.55rem 0.85rem;
+  background: rgba(239, 246, 255, 0.92);
+  color: #1d4ed8;
+  font-size: 0.86rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.auth-link-button {
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .auth-actions {
+    display: none;
+  }
+}
+
+.auth-optional-label {
+  margin-left: 0.35rem;
+  opacity: 0.7;
+  font-size: 0.72em;
+  font-weight: 500;
+}
+
+.optional-auth-note {
+  margin-top: 0.75rem;
+  max-width: 720px;
+  color: var(--muted-foreground, #64748b);
+  font-size: 0.95rem;
+}
+
+.vertical-actions {
+  align-items: flex-end;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.btn-ghost {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+  color: #0f172a;
+}

@@ -69,7 +69,8 @@ export function formatOrderCreatedMessage(order: OrderRecord) {
 }
 
 export function formatPaymentMessage(order: OrderRecord, valid: boolean, approved: boolean) {
-  return truncate(`💳 <b>Hutko callback</b>\n\n<b>№:</b> <code>${escapeHtml(order.orderId)}</code>\n<b>Подпись:</b> ${valid ? "✅ valid" : "⚠️ invalid"}\n<b>Оплата:</b> ${approved ? "✅ approved" : escapeHtml(order.paymentStatus || "not approved")}\n<b>Сумма:</b> <b>${money(order.amountUah)}</b>\n\n<b>Покупатель:</b>\n${customerLines(order)}\n\n<b>Доставка:</b>\n${deliveryLines(order)}`);
+  const provider = order.paymentProvider === "wayforpay" ? "WayForPay" : "Hutko";
+  return truncate(`💳 <b>${provider} callback</b>\n\n<b>№:</b> <code>${escapeHtml(order.orderId)}</code>\n<b>Подпись:</b> ${valid ? "✅ valid" : "⚠️ invalid"}\n<b>Оплата:</b> ${approved ? "✅ approved" : escapeHtml(order.paymentStatus || "not approved")}\n<b>Сумма:</b> <b>${money(order.amountUah)}</b>\n\n<b>Покупатель:</b>\n${customerLines(order)}\n\n<b>Доставка:</b>\n${deliveryLines(order)}`);
 }
 
 export function formatShipmentMessage(order: OrderRecord, shipment: ShipmentResult) {

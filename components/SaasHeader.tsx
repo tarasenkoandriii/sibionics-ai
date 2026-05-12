@@ -1,5 +1,6 @@
 import { getDictionary, localePath, type Locale } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { AuthButtons } from "@/components/AuthButtons";
 
 type ActivePage = "home" | "dashboard" | "onboarding" | "pricing" | "mini-app";
 
@@ -41,6 +42,7 @@ export function SaasHeader({ locale, active }: { locale: Locale; active: ActiveP
         </nav>
 
         <div className="saas-header-actions">
+          <AuthButtons locale={locale} />
           <LanguageSwitcher locale={locale} suffix={suffix} />
           <a className="btn btn-primary" href={localePath(locale, "pricing")}>
             {dict.common.start}
