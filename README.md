@@ -66,6 +66,7 @@ http://localhost:3000/ua
 Minimum for SaaS demo without external payments or AI:
 
 ```bash
+SAAS_MODE=false
 NEXT_PUBLIC_SITE_URL=https://your-domain.com
 AUTH_SESSION_SECRET=replace-with-long-random-value
 ORDER_ADMIN_TOKEN=replace-with-admin-token
@@ -95,6 +96,8 @@ WAYFORPAY_SERVICE_URL=https://your-domain.com/api/payments/wayforpay/callback
 ```
 
 Legacy Hutko/PUMB variables can remain in `.env.local` if you still want to test `/api/payments/hutko/*`.
+
+Set `SAAS_MODE=true` when you want to show the SaaS navigation, dashboard/onboarding/pricing-first flow and subscription-oriented header. By default `SAAS_MODE=false` keeps the public site focused on the product order form.
 
 For Telegram SaaS auth, bot notifications and Mini App login:
 
@@ -257,3 +260,18 @@ WAYFORPAY_MERCHANT_SECRET_KEY=flk3409refn54t54t*FNJRET
 ```
 
 For production, set `WAYFORPAY_USE_TEST_CREDENTIALS=false` and provide your real merchant credentials in `.env.local`.
+
+
+## Header mode flags
+
+```env
+SAAS_MODE=false
+MINI_APP=false
+```
+
+- `SAAS_MODE=false`: header shows only Home and Dashboard; the Start button is hidden.
+- `SAAS_MODE=true`: header shows SaaS navigation and the Start button.
+- `MINI_APP=true`: the Mini App menu item is shown.
+- `MINI_APP=false`: the Mini App menu item is hidden.
+
+The order form also stores Telegram preferences: notify about order updates and add the customer to a Telegram group if needed.

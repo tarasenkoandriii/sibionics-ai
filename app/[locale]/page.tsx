@@ -11,6 +11,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const { locale: rawLocale } = await params;
   const locale = normalizeLocale(rawLocale);
   const dict = getDictionary(locale);
+  const allowUkrposhta = Boolean(process.env.UKRPOSHTA_BEARER?.trim());
 
   return (
     <>
@@ -51,14 +52,14 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </div>
         </section>
 
-        <section className="section compact-section home-order-section">
+        <section id="order" className="section compact-section home-order-section">
           <div className="container narrow-container">
             <div className="section-head center">
               <span className="kicker">Sibionics GS3</span>
               <h2>Замовити сенсори</h2>
               <p className="muted">Оберіть кількість сенсорів, додайте транспондер за потреби та оформіть оплату через WayForPay.</p>
             </div>
-            <CheckoutForm />
+            <CheckoutForm allowUkrposhta={allowUkrposhta} />
           </div>
         </section>
 

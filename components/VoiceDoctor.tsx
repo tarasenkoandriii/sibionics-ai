@@ -15,6 +15,12 @@ function getCurrentLocale(): Locale {
 }
 
 export default function VoiceDoctor() {
+  const [hiddenOnMiniApp, setHiddenOnMiniApp] = useState(false);
+
+  useEffect(() => {
+    setHiddenOnMiniApp(window.location.pathname.includes("/mini-app"));
+  }, []);
+
   const [locale, setLocale] = useState<Locale>("ua");
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -156,7 +162,9 @@ export default function VoiceDoctor() {
   };
 
   if (!open) {
-    return (
+    if (hiddenOnMiniApp) return null;
+
+  return (
       <button className="voice-doctor-launch" type="button" onClick={() => setOpen(true)} aria-label="Open AI Doctor">
         🎤 AI Doctor
       </button>

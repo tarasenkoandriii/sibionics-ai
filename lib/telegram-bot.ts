@@ -49,6 +49,16 @@ function deliveryLines(order: OrderRecord) {
   return parts.join("\n");
 }
 
+function telegramPreferenceLines(order: OrderRecord) {
+  if (!order.telegramPreferences) return "";
+
+  return [
+    "<b>Telegram опции:</b>",
+    `• Уведомлять об изменениях: <b>${order.telegramPreferences.notifyOrderUpdates ? "да" : "нет"}</b>`,
+    `• Добавить в группу: <b>${order.telegramPreferences.addToTelegramGroup ? "да" : "нет"}</b>`
+  ].join("\n");
+}
+
 function customerLines(order: OrderRecord) {
   return [
     `<b>Имя:</b> ${escapeHtml(order.customer.name)}`,

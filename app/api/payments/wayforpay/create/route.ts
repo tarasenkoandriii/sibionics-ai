@@ -35,7 +35,8 @@ export async function POST(request: Request) {
     const name = String(body.name || "").trim();
     const phone = String(body.phone || "").trim();
     const email = String(body.email || "").trim();
-    const deliveryService = normalizeDeliveryService(body.delivery);
+    const allowUkrposhta = Boolean(process.env.UKRPOSHTA_BEARER?.trim());
+    const deliveryService = allowUkrposhta ? normalizeDeliveryService(body.delivery) : "nova_poshta";
     const city = String(body.city || "").trim();
     const branch = String(body.branch || "").trim();
     const postalCode = String(body.postalCode || "").trim();
@@ -43,6 +44,8 @@ export async function POST(request: Request) {
     const novaWarehouseRef = String(body.novaWarehouseRef || "").trim();
     const comment = String(body.comment || "").trim();
     const locale = String(body.locale || "ua").trim();
+    const notifyOrderUpdatesInTelegram = body.notifyOrderUpdatesInTelegram === true;
+    const addToTelegramGroup = body.addToTelegramGroup === true;
 
     if (name.length < 2) return NextResponse.json({ error: "Укажите имя получателя." }, { status: 400 });
     if (!PHONE_RE.test(phone)) return NextResponse.json({ error: "Укажите корректный телефон." }, { status: 400 });
@@ -89,7 +92,11 @@ export async function POST(request: Request) {
         freeTapeQty: orderSummary.freeTapeQty
       },
       items,
-      comment: comment || undefined
+      comment: comment || undefined,
+      telegramPreferences: {
+        notifyOrderUpdates: notifyOrderUpdatesInTelegram,
+        addToTelegramGroup
+      }
     };
 
     await saveOrder(order);

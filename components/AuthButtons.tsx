@@ -38,7 +38,7 @@ export function AuthButtons({ locale }: { locale: Locale }) {
   }
 
   if (loading) {
-    return <span className="auth-pill muted">Optional login...</span>;
+    return <span className="btn btn-primary auth-login-button is-loading">Login Telegram</span>;
   }
 
   if (state?.authenticated) {
@@ -46,7 +46,7 @@ export function AuthButtons({ locale }: { locale: Locale }) {
     const label = user?.firstName || user?.username || "Telegram";
     return (
       <div className="auth-actions">
-        <a className="auth-pill" href={`/${locale}/dashboard`}>TG · {label}</a>
+        <a className="btn btn-primary auth-login-button" href={`/${locale}/dashboard`}>TG · {label}</a>
         <button className="auth-link-button" type="button" onClick={logout}>Logout</button>
       </div>
     );
@@ -54,7 +54,7 @@ export function AuthButtons({ locale }: { locale: Locale }) {
 
   return (
     <div className="auth-actions">
-      <a className="auth-pill" href={`/api/auth/telegram/oidc/start?locale=${locale}`}>Login Telegram <span className="auth-optional-label">optional</span></a>
+      <a className="btn btn-primary auth-login-button" href={`/api/auth/telegram/oidc/start?locale=${locale}`}>Login Telegram</a>
     </div>
   );
 }

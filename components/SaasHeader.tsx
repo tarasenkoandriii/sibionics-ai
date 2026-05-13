@@ -1,6 +1,7 @@
 import { getDictionary, localePath, type Locale } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { AuthButtons } from "@/components/AuthButtons";
+import { isMiniAppMenuEnabled, isSaasModeEnabled } from "@/lib/saas-mode";
 
 type ActivePage = "home" | "dashboard" | "onboarding" | "pricing" | "mini-app";
 
@@ -11,6 +12,8 @@ function navClass(active: ActivePage, page: ActivePage) {
 export function SaasHeader({ locale, active }: { locale: Locale; active: ActivePage }) {
   const dict = getDictionary(locale);
   const suffix = active === "home" ? "" : active;
+  const saasMode = isSaasModeEnabled();
+  const miniAppEnabled = isMiniAppMenuEnabled();
 
   return (
     <header className="saas-header">
@@ -30,23 +33,31 @@ export function SaasHeader({ locale, active }: { locale: Locale; active: ActiveP
           <a className={navClass(active, "dashboard")} href={localePath(locale, "dashboard")}>
             {dict.nav.dashboard}
           </a>
-          <a className={navClass(active, "onboarding")} href={localePath(locale, "onboarding")}>
-            {dict.nav.onboarding}
-          </a>
-          <a className={navClass(active, "pricing")} href={localePath(locale, "pricing")}>
-            {dict.nav.pricing}
-          </a>
-          <a className={navClass(active, "mini-app")} href={localePath(locale, "mini-app")}>
-            {dict.nav.miniApp}
-          </a>
+          {saasMode ? (
+            <>
+              <a className={navClass(active, "onboarding")} href={localePath(locale, "onboarding")}>
+                {dict.nav.onboarding}
+              </a>
+              <a className={navClass(active, "pricing")} href={localePath(locale, "pricing")}>
+                {dict.nav.pricing}
+              </a>
+              {miniAppEnabled ? (
+                <a className={navClass(active, "mini-app")} href={localePath(locale, "mini-app")}>
+                  {dict.nav.miniApp}
+                </a>
+              ) : null}
+            </>
+          ) : null}
         </nav>
 
         <div className="saas-header-actions">
+          {saasMode ? (
+            <a className="btn btn-primary" href={localePath(locale, "pricing")}>
+              {dict.common.start}
+            </a>
+          ) : null}
           <AuthButtons locale={locale} />
           <LanguageSwitcher locale={locale} suffix={suffix} />
-          <a className="btn btn-primary" href={localePath(locale, "pricing")}>
-            {dict.common.start}
-          </a>
         </div>
       </div>
     </header>

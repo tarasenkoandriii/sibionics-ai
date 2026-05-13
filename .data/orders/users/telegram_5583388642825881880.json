@@ -1,0 +1,18 @@
+{
+  "id": "USR-TG-5583388642825881880",
+  "telegramId": "5583388642825881880",
+  "username": "TypescriptES6",
+  "firstName": "А",
+  "photoUrl": "https://t.me/i/userpic/320/WjeRsMRHesivC3BHWfEgZFxDSbrRUTQ0guTC8PZALlKjbs8LaQ_z3-D4dht2WZ-N.jpg",
+  "locale": "ua",
+  "role": "user",
+  "subscriptionPlan": "trial",
+  "subscriptionStatus": "trial",
+  "onboardingCompleted": false,
+  "authSources": [
+    "telegram-oidc"
+  ],
+  "lastLoginAt": "2026-05-12T17:21:03.519Z",
+  "createdAt": "2026-05-12T16:49:59.240Z",
+  "updatedAt": "2026-05-12T17:21:03.521Z"
+}

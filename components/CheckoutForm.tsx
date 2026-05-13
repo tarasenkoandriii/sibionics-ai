@@ -15,6 +15,8 @@ type CheckoutState = {
   postalCode: string;
   addressLine: string;
   comment: string;
+  notifyOrderUpdatesInTelegram: boolean;
+  addToTelegramGroup: boolean;
 };
 
 const initialState: CheckoutState = {
@@ -26,13 +28,31 @@ const initialState: CheckoutState = {
   branch: "",
   postalCode: "",
   addressLine: "",
-  comment: ""
+  comment: "",
+  notifyOrderUpdatesInTelegram: false,
+  addToTelegramGroup: false
 };
 
-export function CheckoutForm() {
+type CheckoutFormProps = {
+  allowUkrposhta?: boolean;
+  defaultNotifyOrderUpdatesInTelegram?: boolean;
+  defaultAddToTelegramGroup?: boolean;
+  compactHeader?: boolean;
+};
+
+export function CheckoutForm({
+  allowUkrposhta = false,
+  defaultNotifyOrderUpdatesInTelegram = false,
+  defaultAddToTelegramGroup = false,
+  compactHeader = false
+}: CheckoutFormProps) {
   const [sensorQty, setSensorQty] = useState(1);
   const [includeTransponder, setIncludeTransponder] = useState(true);
-  const [form, setForm] = useState(initialState);
+  const [form, setForm] = useState<CheckoutState>(() => ({
+    ...initialState,
+    notifyOrderUpdatesInTelegram: defaultNotifyOrderUpdatesInTelegram,
+    addToTelegramGroup: defaultAddToTelegramGroup
+  }));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,7 +61,8 @@ export function CheckoutForm() {
     [sensorQty, includeTransponder]
   );
 
-  const isUkrposhta = form.delivery === "ukrposhta";
+  const effectiveDelivery: DeliveryOption = allowUkrposhta ? form.delivery : "nova_poshta";
+  const isUkrposhta = effectiveDelivery === "ukrposhta";
 
   function updateField<K extends keyof CheckoutState>(field: K, value: CheckoutState[K]) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -62,8 +83,11 @@ export function CheckoutForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
+          delivery: effectiveDelivery,
           sensorQty: orderSummary.sensorQty,
-          includeTransponder: orderSummary.includeTransponder
+          includeTransponder: orderSummary.includeTransponder,
+          notifyOrderUpdatesInTelegram: form.notifyOrderUpdatesInTelegram,
+          addToTelegramGroup: form.addToTelegramGroup
         })
       });
 
@@ -79,16 +103,32 @@ export function CheckoutForm() {
 
   return (
     <form className="order-panel" onSubmit={submit} id="checkout">
-      <div className="section-head" style={{ marginBottom: 22 }}>
-        <span className="kicker">Оплата по умолчанию WayForPay</span>
-        <h2>Оформить заказ Sibionics GS3</h2>
-        <p className="muted">
-          Выберите количество сенсоров, добавьте транспондер только при необходимости. Первый сенсор считается по базовой цене,
-          второй и последующие — по сниженной цене. При заказе от двух сенсоров тейпы автоматически добавляются в подарок.
-        </p>
-      </div>
+      {!compactHeader ? (
+        <div className="section-head" style={{ marginBottom: 22 }}>
+          <span className="kicker">Оплата по умолчанию WayForPay</span>
+          <h2>Оформить заказ Sibionics GS3</h2>
+          <p className="muted">
+            Выберите количество сенсоров, добавьте транспондер только при необходимости. Первый сенсор считается по базовой цене,
+            второй и последующие — по сниженной цене. При заказе от двух сенсоров тейпы автоматически добавляются в подарок.
+          </p>
+        </div>
+      ) : null}
 
       <div className="steps" style={{ marginBottom: 18 }}>
+        <label className="option-row">
+          <input
+            type="checkbox"
+            checked={includeTransponder}
+            onChange={(event) => setIncludeTransponder(event.target.checked)}
+          />
+          <span>
+            <strong>Добавить транспондер</strong>
+            <small>
+              +{moneyUah(ORDER_PRICING.transponder.unitPriceUah)}. Оставьте выключенным, если транспондер уже есть.
+            </small>
+          </span>
+        </label>
+
         <div className="qty-row product-qty-row">
           <div>
             <strong>Сенсоры Sibionics GS3</strong>
@@ -123,20 +163,6 @@ export function CheckoutForm() {
             +
           </button>
         </div>
-
-        <label className="option-row">
-          <input
-            type="checkbox"
-            checked={includeTransponder}
-            onChange={(event) => setIncludeTransponder(event.target.checked)}
-          />
-          <span>
-            <strong>Добавить транспондер</strong>
-            <small>
-              +{moneyUah(ORDER_PRICING.transponder.unitPriceUah)}. Оставьте выключенным, если транспондер уже есть.
-            </small>
-          </span>
-        </label>
 
         <div className={`gift-note ${orderSummary.hasFreeTapes ? "active" : ""}`}>
           {orderSummary.hasFreeTapes ? (
@@ -200,12 +226,14 @@ export function CheckoutForm() {
           <span>Доставка</span>
           <select
             className="select"
-            value={form.delivery}
+            value={effectiveDelivery}
             onChange={(event) => updateField("delivery", event.target.value as DeliveryOption)}
+            disabled={!allowUkrposhta}
           >
             <option value="nova_poshta">Новая почта</option>
-            <option value="ukrposhta">Укрпочта</option>
+            {allowUkrposhta ? <option value="ukrposhta">Укрпочта</option> : null}
           </select>
+          {!allowUkrposhta ? <small>Укрпочта недоступна: не задан UKRPOSHTA_BEARER.</small> : null}
         </label>
 
         <label className="field">
@@ -282,6 +310,32 @@ export function CheckoutForm() {
       <button className="btn btn-primary" type="submit" disabled={loading} style={{ width: "100%" }}>
         {loading ? "Создаем платеж…" : "Оплатить через WayForPay"}
       </button>
+
+      <div className="steps telegram-options-after-payment" style={{ marginTop: 16, marginBottom: 0 }}>
+        <label className="option-row">
+          <input
+            type="checkbox"
+            checked={form.notifyOrderUpdatesInTelegram}
+            onChange={(event) => updateField("notifyOrderUpdatesInTelegram", event.target.checked)}
+          />
+          <span>
+            <strong>Уведомлять об изменениях в заказе в телеграмм</strong>
+            <small>Получать сообщения о статусе оплаты, доставки и ТТН, если Telegram будет подключен.</small>
+          </span>
+        </label>
+
+        <label className="option-row">
+          <input
+            type="checkbox"
+            checked={form.addToTelegramGroup}
+            onChange={(event) => updateField("addToTelegramGroup", event.target.checked)}
+          />
+          <span>
+            <strong>Добавить клиента в телеграмм группу если еще не добавлен</strong>
+            <small>Менеджер увидит эту опцию в заказе и сможет добавить клиента в группу поддержки.</small>
+          </span>
+        </label>
+      </div>
 
       <p className="disclaimer" style={{ marginTop: 14 }}>
         Стоимость берется из конфигурации проекта. Заказ сохраняется перед оплатой, бот уведомляет менеджера, а после

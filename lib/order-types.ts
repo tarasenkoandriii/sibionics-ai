@@ -1,4 +1,5 @@
 export type DeliveryService = "nova_poshta" | "ukrposhta";
+export type PaymentProvider = "wayforpay" | "hutko";
 
 export type OrderStatus =
   | "pending_payment"
@@ -21,6 +22,11 @@ export type CustomerDetails = {
   name: string;
   phone: string;
   email?: string;
+};
+
+export type TelegramOrderPreferences = {
+  notifyOrderUpdates: boolean;
+  addToTelegramGroup: boolean;
 };
 
 export type OrderItem = {
@@ -68,9 +74,14 @@ export type OrderRecord = {
   productOrder?: ProductOrderDetails;
   items: OrderItem[];
   comment?: string;
+  telegramPreferences?: TelegramOrderPreferences;
+  paymentProvider?: PaymentProvider;
   payment?: {
     checkoutUrl?: string;
     hutkoRaw?: unknown;
+    wayforpayRaw?: unknown;
+    wayforpayRequest?: unknown;
+    wayforpayCallbackRaw?: unknown;
     callbackRaw?: unknown;
     paidAt?: string;
   };
