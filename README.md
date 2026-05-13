@@ -275,3 +275,5 @@ MINI_APP=false
 - `MINI_APP=false`: the Mini App menu item is hidden.
 
 The order form also stores Telegram preferences: notify about order updates and add the customer to a Telegram group if needed.
+
+## Telegram mini-app
