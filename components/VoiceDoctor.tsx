@@ -14,13 +14,14 @@ function getCurrentLocale(): Locale {
   return normalizeLocale(firstSegment);
 }
 
+function isMiniAppPath() {
+  if (typeof window === "undefined") return false;
+  const pathname = window.location.pathname;
+  return pathname.includes("/mini-app") || pathname === "/order";
+}
+
 export default function VoiceDoctor() {
-  const [hiddenOnMiniApp, setHiddenOnMiniApp] = useState(false);
-
-  useEffect(() => {
-    setHiddenOnMiniApp(window.location.pathname.includes("/mini-app"));
-  }, []);
-
+  const [isMiniApp, setIsMiniApp] = useState(() => isMiniAppPath());
   const [locale, setLocale] = useState<Locale>("ua");
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -32,12 +33,15 @@ export default function VoiceDoctor() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [recording, setRecording] = useState(false);
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(() => !isMiniAppPath());
 
   const recognitionRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    const runningInMiniApp = isMiniAppPath();
+    setIsMiniApp(runningInMiniApp);
+    setOpen((currentOpen) => (runningInMiniApp ? false : currentOpen));
     setLocale(getCurrentLocale());
   }, []);
 
@@ -161,11 +165,18 @@ export default function VoiceDoctor() {
     }
   };
 
-  if (!open) {
-    if (hiddenOnMiniApp) return null;
+  if (isMiniApp) {
+    return null;
+  }
 
-  return (
-      <button className="voice-doctor-launch" type="button" onClick={() => setOpen(true)} aria-label="Open AI Doctor">
+  if (!open) {
+    return (
+      <button
+        className={`voice-doctor-launch${isMiniApp ? " miniapp" : ""}`}
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label="Open AI Doctor"
+      >
         🎤 AI Doctor
       </button>
     );

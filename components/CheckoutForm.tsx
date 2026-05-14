@@ -29,8 +29,8 @@ const initialState: CheckoutState = {
   postalCode: "",
   addressLine: "",
   comment: "",
-  notifyOrderUpdatesInTelegram: false,
-  addToTelegramGroup: false
+  notifyOrderUpdatesInTelegram: true,
+  addToTelegramGroup: true
 };
 
 type CheckoutFormProps = {
@@ -42,8 +42,8 @@ type CheckoutFormProps = {
 
 export function CheckoutForm({
   allowUkrposhta = false,
-  defaultNotifyOrderUpdatesInTelegram = false,
-  defaultAddToTelegramGroup = false,
+  defaultNotifyOrderUpdatesInTelegram = true,
+  defaultAddToTelegramGroup = true,
   compactHeader = false
 }: CheckoutFormProps) {
   const [sensorQty, setSensorQty] = useState(1);

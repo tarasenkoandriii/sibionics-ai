@@ -25,7 +25,8 @@ The project now contains:
 /ua/dashboard         -> realtime CGM + AI voice doctor + photo AI
 /ua/onboarding        -> onboarding wizard
 /ua/pricing           -> subscription plans + WayForPay checkout
-/ua/mini-app          -> Telegram Mini App login test page
+/order                 -> Telegram Mini App order-only page
+/ua/mini-app          -> redirects to /order
 /ru, /pl, /en         -> same structure in other languages
 ```
 
@@ -203,15 +204,15 @@ WayForPay is used as the default payment provider for paid plans. The code imple
 
 The legacy Hutko/PUMB implementation remains in the project under `/api/payments/hutko/*`.
 
-## Telegram Mini App login
+## Telegram Mini App order page
 
-The page `/ua/mini-app` reads `window.Telegram.WebApp.initData` on the client and sends it to:
+The Telegram Mini App entrypoint is `/order`. It renders only the Sibionics GS3 order form and calls `window.Telegram.WebApp.ready()` / `expand()` on the client. Legacy locale routes like `/ua/mini-app` redirect to `/order`.
+
+AI Doctor is fully disabled on `/order`, so the Telegram Mini App stays focused on checkout. The order form keeps both Telegram preference checkboxes enabled by default on the website and in Mini App. The backend Telegram Mini App auth endpoint remains available for future profile/session linking:
 
 ```txt
 POST /api/auth/telegram/miniapp
 ```
-
-The backend validates the HMAC signature with the bot token, checks freshness, extracts the Telegram user and writes the existing `tg_session` cookie.
 
 ## Medical safety
 
@@ -275,5 +276,3 @@ MINI_APP=false
 - `MINI_APP=false`: the Mini App menu item is hidden.
 
 The order form also stores Telegram preferences: notify about order updates and add the customer to a Telegram group if needed.
-
-## Telegram mini-app

@@ -42,7 +42,7 @@ export function SaasHeader({ locale, active }: { locale: Locale; active: ActiveP
                 {dict.nav.pricing}
               </a>
               {miniAppEnabled ? (
-                <a className={navClass(active, "mini-app")} href={localePath(locale, "mini-app")}>
+                <a className={navClass(active, "mini-app")} href="/order">
                   {dict.nav.miniApp}
                 </a>
               ) : null}
