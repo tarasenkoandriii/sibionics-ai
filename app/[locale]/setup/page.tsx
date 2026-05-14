@@ -358,6 +358,77 @@ const content: Record<Locale, SetupContent> = {
   }
 };
 
+const sugarJoyScreenshots = {
+  ua: [
+    {
+      src: "/setup/sugar-joy-main.jpg",
+      alt: "Головний екран Sugar Joy з кнопкою підключення сенсора",
+      caption: "На головному екрані Sugar Joy натисніть кнопку «Підключити».",
+    },
+    {
+      src: "/setup/sugar-joy-connect.jpg",
+      alt: "Екран підключення сенсора Sugar Joy з кнопкою сканування",
+      caption: "Оберіть сканування QR-коду на коробці сенсора.",
+    },
+    {
+      src: "/setup/sugar-joy-scan-qr.jpg",
+      alt: "Екран камери Sugar Joy для сканування QR-коду сенсора",
+      caption: "Наведіть камеру на QR-код всередині коробки сенсора.",
+    },
+  ],
+  ru: [
+    {
+      src: "/setup/sugar-joy-main.jpg",
+      alt: "Главный экран Sugar Joy с кнопкой подключения сенсора",
+      caption: "На главном экране Sugar Joy нажмите кнопку «Подключить».",
+    },
+    {
+      src: "/setup/sugar-joy-connect.jpg",
+      alt: "Экран подключения сенсора Sugar Joy с кнопкой сканирования",
+      caption: "Выберите сканирование QR-кода на коробке сенсора.",
+    },
+    {
+      src: "/setup/sugar-joy-scan-qr.jpg",
+      alt: "Экран камеры Sugar Joy для сканирования QR-кода сенсора",
+      caption: "Наведите камеру на QR-код внутри коробки сенсора.",
+    },
+  ],
+  pl: [
+    {
+      src: "/setup/sugar-joy-main.jpg",
+      alt: "Ekran główny Sugar Joy z przyciskiem podłączenia sensora",
+      caption: "Na ekranie głównym Sugar Joy naciśnij przycisk „Połącz”.",
+    },
+    {
+      src: "/setup/sugar-joy-connect.jpg",
+      alt: "Ekran podłączenia sensora Sugar Joy z przyciskiem skanowania",
+      caption: "Wybierz skanowanie kodu QR z pudełka sensora.",
+    },
+    {
+      src: "/setup/sugar-joy-scan-qr.jpg",
+      alt: "Ekran aparatu Sugar Joy do skanowania kodu QR sensora",
+      caption: "Skieruj aparat na kod QR wewnątrz pudełka sensora.",
+    },
+  ],
+  en: [
+    {
+      src: "/setup/sugar-joy-main.jpg",
+      alt: "Sugar Joy home screen with the sensor connect button",
+      caption: "On the Sugar Joy home screen, tap “Connect”.",
+    },
+    {
+      src: "/setup/sugar-joy-connect.jpg",
+      alt: "Sugar Joy sensor connection screen with the scan button",
+      caption: "Choose QR-code scanning on the sensor box.",
+    },
+    {
+      src: "/setup/sugar-joy-scan-qr.jpg",
+      alt: "Sugar Joy camera screen for scanning the sensor QR code",
+      caption: "Point the camera at the QR code inside the sensor box.",
+    },
+  ],
+} satisfies Record<Locale, Array<{ src: string; alt: string; caption: string }>>;
+
 export default async function SetupPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: rawLocale } = await params;
   const locale = normalizeLocale(rawLocale);
@@ -409,6 +480,14 @@ export default async function SetupPage({ params }: { params: Promise<{ locale: 
               </div>
 
               <h2>{t.sugarConnectTitle}</h2>
+              <div className="setup-screenshot-gallery" aria-label={t.sugarConnectTitle}>
+                {sugarJoyScreenshots[locale].map((image) => (
+                  <figure className="setup-screenshot-card" key={image.src}>
+                    <img src={image.src} alt={image.alt} />
+                    <figcaption>{image.caption}</figcaption>
+                  </figure>
+                ))}
+              </div>
               <ol>
                 {t.sugarConnectSteps.map((step) => (
                   <li key={step}>{step}</li>

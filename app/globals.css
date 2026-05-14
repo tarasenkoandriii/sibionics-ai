@@ -2081,3 +2081,48 @@ h3 {
   content: "";
   box-shadow: 0 0 0 5px rgba(8, 183, 179, 0.12);
 }
+
+
+.setup-screenshot-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 22px 0 26px;
+}
+
+.setup-screenshot-card {
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 16px 40px rgba(17, 37, 43, 0.08);
+}
+
+.setup-screenshot-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  object-fit: cover;
+  object-position: top center;
+  border-radius: 18px;
+  background: #f8fbfb;
+}
+
+.setup-screenshot-card figcaption {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+@media (max-width: 860px) {
+  .setup-screenshot-gallery {
+    grid-template-columns: 1fr;
+  }
+
+  .setup-screenshot-card {
+    max-width: 420px;
+    margin: 0 auto;
+  }
+}
