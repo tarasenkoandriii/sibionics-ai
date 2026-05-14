@@ -53,7 +53,8 @@ export const dictionaries = {
       onboarding: "Онбординг",
       pricing: "Плани",
       miniApp: "Mini App",
-      installation: "Установка"
+      installation: "Установка",
+      setup: "Налаштування"
     },
     home: {
       kicker: "Dexcom-style SaaS · Sibionics GS3 · AI layer",
@@ -169,7 +170,8 @@ export const dictionaries = {
       onboarding: "Онбординг",
       pricing: "Планы",
       miniApp: "Mini App",
-      installation: "Установка"
+      installation: "Установка",
+      setup: "Настройка"
     },
     home: {
       kicker: "Dexcom-style SaaS · Sibionics GS3 · AI layer",
@@ -285,7 +287,8 @@ export const dictionaries = {
       onboarding: "Onboarding",
       pricing: "Plany",
       miniApp: "Mini App",
-      installation: "Instalacja"
+      installation: "Instalacja",
+      setup: "Konfiguracja"
     },
     home: {
       kicker: "Dexcom-style SaaS · Sibionics GS3 · AI layer",
@@ -401,7 +404,8 @@ export const dictionaries = {
       onboarding: "Onboarding",
       pricing: "Plans",
       miniApp: "Mini App",
-      installation: "Installation"
+      installation: "Installation",
+      setup: "Setup"
     },
     home: {
       kicker: "Dexcom-style SaaS · Sibionics GS3 · AI layer",

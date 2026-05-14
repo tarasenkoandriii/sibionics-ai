@@ -3,7 +3,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { AuthButtons } from "@/components/AuthButtons";
 import { isMiniAppMenuEnabled, isSaasModeEnabled } from "@/lib/saas-mode";
 
-type ActivePage = "home" | "installation" | "dashboard" | "onboarding" | "pricing" | "mini-app";
+type ActivePage = "home" | "installation" | "setup" | "dashboard" | "onboarding" | "pricing" | "mini-app";
 
 function navClass(active: ActivePage, page: ActivePage) {
   return active === page ? "active" : undefined;
@@ -27,11 +27,15 @@ export function SaasHeader({ locale, active }: { locale: Locale; active: ActiveP
         </a>
 
         <nav className="saas-nav" aria-label="SaaS navigation">
+          {/* Always-visible product navigation. These links are shown in both landing and SaaS modes. */}
           <a className={navClass(active, "home")} href={localePath(locale)}>
             {dict.nav.home}
           </a>
           <a className={navClass(active, "installation")} href={localePath(locale, "installation")}>
             {dict.nav.installation}
+          </a>
+          <a className={navClass(active, "setup")} href={localePath(locale, "setup")}>
+            {dict.nav.setup}
           </a>
           <a className={navClass(active, "dashboard")} href={localePath(locale, "dashboard")}>
             {dict.nav.dashboard}
