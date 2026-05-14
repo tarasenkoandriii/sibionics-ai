@@ -1,6 +1,7 @@
 "use client";
 
 import { KeyboardEvent, useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { normalizeLocale, speechLocale, type Locale } from "@/lib/i18n";
 
 type Message = {
@@ -8,21 +9,28 @@ type Message = {
   content: string;
 };
 
-function getCurrentLocale(): Locale {
-  if (typeof window === "undefined") return "ua";
-  const firstSegment = window.location.pathname.split("/").filter(Boolean)[0];
+function getLocaleFromPathname(pathname: string): Locale {
+  const firstSegment = pathname.split("/").filter(Boolean)[0];
   return normalizeLocale(firstSegment);
 }
 
-function isMiniAppPath() {
+function isMiniAppPath(pathname: string) {
+  const normalizedPathname = pathname.replace(/\/+$|^$/g, "") || "/";
+  return normalizedPathname === "/order" || normalizedPathname.includes("/mini-app");
+}
+
+function isTelegramWebAppRuntime() {
   if (typeof window === "undefined") return false;
-  const pathname = window.location.pathname;
-  return pathname.includes("/mini-app") || pathname === "/order";
+
+  const webApp = (window as any).Telegram?.WebApp;
+  return Boolean(webApp?.initData || webApp?.initDataUnsafe?.user);
 }
 
 export default function VoiceDoctor() {
-  const [isMiniApp, setIsMiniApp] = useState(() => isMiniAppPath());
-  const [locale, setLocale] = useState<Locale>("ua");
+  const pathname = usePathname() || "/";
+  const [mounted, setMounted] = useState(false);
+  const [runningInTelegram, setRunningInTelegram] = useState(false);
+  const [locale, setLocale] = useState<Locale>(() => getLocaleFromPathname(pathname));
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -33,17 +41,16 @@ export default function VoiceDoctor() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [recording, setRecording] = useState(false);
-  const [open, setOpen] = useState(() => !isMiniAppPath());
+  const [open, setOpen] = useState(true);
 
   const recognitionRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const runningInMiniApp = isMiniAppPath();
-    setIsMiniApp(runningInMiniApp);
-    setOpen((currentOpen) => (runningInMiniApp ? false : currentOpen));
-    setLocale(getCurrentLocale());
-  }, []);
+    setMounted(true);
+    setRunningInTelegram(isTelegramWebAppRuntime());
+    setLocale(getLocaleFromPathname(pathname));
+  }, [pathname]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -165,14 +172,16 @@ export default function VoiceDoctor() {
     }
   };
 
-  if (isMiniApp) {
+  const hideVoiceDoctor = !mounted || isMiniAppPath(pathname) || runningInTelegram;
+
+  if (hideVoiceDoctor) {
     return null;
   }
 
   if (!open) {
     return (
       <button
-        className={`voice-doctor-launch${isMiniApp ? " miniapp" : ""}`}
+        className="voice-doctor-launch"
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open AI Doctor"
