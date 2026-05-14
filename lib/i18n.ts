@@ -33,6 +33,7 @@ export const dictionaries = {
       onboarding: "Онбординг",
       pricing: "Підписка",
       miniApp: "Telegram Mini App",
+      installation: "Установка",
       buy: "Купити GS3",
       start: "Почати",
       tryDemo: "Відкрити демо",
@@ -51,23 +52,24 @@ export const dictionaries = {
       dashboard: "Дашборд",
       onboarding: "Онбординг",
       pricing: "Плани",
-      miniApp: "Mini App"
+      miniApp: "Mini App",
+      installation: "Установка"
     },
     home: {
       kicker: "Dexcom-style SaaS · Sibionics GS3 · AI layer",
-      title: "AI Diabetes SaaS для CGM, голосового лікаря і підписок через Hutko",
+      title: "AI Diabetes SaaS для CGM, голосового лікаря і підписок через WayForPay",
       lead:
         "Готовий Next.js-скелет для Sibionics GS3: realtime-потік глюкози, AI-прогноз, голосовий помічник, Telegram Mini App login, українська мова за замовчуванням і multi-language UI.",
       primaryCta: "Перейти в дашборд",
       secondaryCta: "Налаштувати профіль",
-      metrics: ["Realtime CGM", "AI voice doctor", "Hutko billing", "Telegram Mini App"],
+      metrics: ["Realtime CGM", "AI voice doctor", "WayForPay billing", "Telegram Mini App"],
       featureTitle: "Що вже імплементовано",
       featureLead: "Логіка працює локально в demo/mock режимі та готова до підключення реальних ключів API.",
       features: [
         ["CGM stream", "SSE-потік кожні кілька секунд, графік, тренд, ризики і прогноз на 30/60/120 хв."],
         ["AI doctor", "Текстовий і голосовий діалог з медичними safety-обмеженнями та fallback без ключа OpenAI."],
         ["Telegram Mini App", "Перевірка initData через HMAC, створення сесії і підтримка WebApp SDK."],
-        ["Hutko subscriptions", "Плани підписки, checkout через PUMB/Hutko, callback-активація та Telegram-нотифікації."],
+        ["WayForPay subscriptions", "Плани підписки, checkout через WayForPay, callback-активація та Telegram-нотифікації."],
         ["i18n", "Українська за замовчуванням, також російська, польська й англійська."],
         ["Dashboard", "CGM, AI prediction, voice doctor, підписка і швидкі дії в одному кабінеті."]
       ]
@@ -120,15 +122,15 @@ export const dictionaries = {
     },
     pricing: {
       title: "Плани підписки",
-      lead: "Hutko/PUMB використовується як єдина платіжка. Без ключів API кнопки працюють у demo/error-safe режимі.",
+      lead: "WayForPay використовується як єдина платіжка. Без ключів API кнопки працюють у demo/error-safe режимі.",
       customer: "Дані для платежу",
       name: "Імʼя",
       phone: "Телефон",
       email: "Email",
-      pay: "Оплатити через Hutko",
+      pay: "Оплатити через WayForPay",
       free: "Активувати безкоштовно",
       billing: "місяць",
-      success: "Checkout створено. Перенаправляємо на Hutko..."
+      success: "Checkout створено. Перенаправляємо на WayForPay..."
     },
     miniApp: {
       title: "Telegram Mini App login",
@@ -147,6 +149,7 @@ export const dictionaries = {
       onboarding: "Онбординг",
       pricing: "Подписка",
       miniApp: "Telegram Mini App",
+      installation: "Установка",
       buy: "Купить GS3",
       start: "Начать",
       tryDemo: "Открыть демо",
@@ -165,23 +168,24 @@ export const dictionaries = {
       dashboard: "Дашборд",
       onboarding: "Онбординг",
       pricing: "Планы",
-      miniApp: "Mini App"
+      miniApp: "Mini App",
+      installation: "Установка"
     },
     home: {
       kicker: "Dexcom-style SaaS · Sibionics GS3 · AI layer",
-      title: "AI Diabetes SaaS для CGM, голосового врача и подписок через Hutko",
+      title: "AI Diabetes SaaS для CGM, голосового врача и подписок через WayForPay",
       lead:
         "Готовый Next.js-скелет для Sibionics GS3: realtime-поток глюкозы, AI-прогноз, голосовой помощник, Telegram Mini App login, украинский по умолчанию и multi-language UI.",
       primaryCta: "Перейти в дашборд",
       secondaryCta: "Настроить профиль",
-      metrics: ["Realtime CGM", "AI voice doctor", "Hutko billing", "Telegram Mini App"],
+      metrics: ["Realtime CGM", "AI voice doctor", "WayForPay billing", "Telegram Mini App"],
       featureTitle: "Что уже имплементировано",
       featureLead: "Логика работает локально в demo/mock режиме и готова к подключению реальных API-ключей.",
       features: [
         ["CGM stream", "SSE-поток каждые несколько секунд, график, тренд, риски и прогноз на 30/60/120 мин."],
         ["AI doctor", "Текстовый и голосовой диалог с медицинскими safety-ограничениями и fallback без ключа OpenAI."],
         ["Telegram Mini App", "Проверка initData через HMAC, создание сессии и поддержка WebApp SDK."],
-        ["Hutko subscriptions", "Планы подписки, checkout через PUMB/Hutko, callback-активация и Telegram-нотификации."],
+        ["WayForPay subscriptions", "Планы подписки, checkout через WayForPay, callback-активация и Telegram-нотификации."],
         ["i18n", "Украинский по умолчанию, также русский, польский и английский."],
         ["Dashboard", "CGM, AI prediction, voice doctor, подписка и быстрые действия в одном кабинете."]
       ]
@@ -234,15 +238,15 @@ export const dictionaries = {
     },
     pricing: {
       title: "Планы подписки",
-      lead: "Hutko/PUMB используется как единственная платежка. Без API-ключей кнопки работают в demo/error-safe режиме.",
+      lead: "WayForPay используется как единственная платежка. Без API-ключей кнопки работают в demo/error-safe режиме.",
       customer: "Данные для платежа",
       name: "Имя",
       phone: "Телефон",
       email: "Email",
-      pay: "Оплатить через Hutko",
+      pay: "Оплатить через WayForPay",
       free: "Активировать бесплатно",
       billing: "месяц",
-      success: "Checkout создан. Перенаправляем на Hutko..."
+      success: "Checkout создан. Перенаправляем на WayForPay..."
     },
     miniApp: {
       title: "Telegram Mini App login",
@@ -261,6 +265,7 @@ export const dictionaries = {
       onboarding: "Onboarding",
       pricing: "Subskrypcja",
       miniApp: "Telegram Mini App",
+      installation: "Instalacja",
       buy: "Kup GS3",
       start: "Start",
       tryDemo: "Otwórz demo",
@@ -279,23 +284,24 @@ export const dictionaries = {
       dashboard: "Panel",
       onboarding: "Onboarding",
       pricing: "Plany",
-      miniApp: "Mini App"
+      miniApp: "Mini App",
+      installation: "Instalacja"
     },
     home: {
       kicker: "Dexcom-style SaaS · Sibionics GS3 · AI layer",
-      title: "AI Diabetes SaaS dla CGM, lekarza głosowego i płatności Hutko",
+      title: "AI Diabetes SaaS dla CGM, lekarza głosowego i płatności WayForPay",
       lead:
         "Gotowy szkielet Next.js dla Sibionics GS3: strumień glukozy realtime, prognozy AI, asystent głosowy, Telegram Mini App login, ukraiński domyślnie i UI w wielu językach.",
       primaryCta: "Przejdź do panelu",
       secondaryCta: "Ustaw profil",
-      metrics: ["Realtime CGM", "AI voice doctor", "Hutko billing", "Telegram Mini App"],
+      metrics: ["Realtime CGM", "AI voice doctor", "WayForPay billing", "Telegram Mini App"],
       featureTitle: "Co jest już zaimplementowane",
       featureLead: "Logika działa lokalnie w trybie demo/mock i jest gotowa na prawdziwe klucze API.",
       features: [
         ["CGM stream", "SSE co kilka sekund, wykres, trend, ryzyka i prognoza 30/60/120 min."],
         ["AI doctor", "Dialog tekstowy i głosowy z ograniczeniami bezpieczeństwa medycznego i fallbackiem bez klucza OpenAI."],
         ["Telegram Mini App", "Walidacja initData przez HMAC, sesja i obsługa WebApp SDK."],
-        ["Hutko subscriptions", "Plany, checkout przez PUMB/Hutko, aktywacja callbackiem i powiadomienia Telegram."],
+        ["WayForPay subscriptions", "Plany, checkout przez WayForPay, aktywacja callbackiem i powiadomienia Telegram."],
         ["i18n", "Ukraiński domyślnie, także rosyjski, polski i angielski."],
         ["Dashboard", "CGM, AI prediction, voice doctor, subskrypcja i szybkie akcje w jednym panelu."]
       ]
@@ -348,15 +354,15 @@ export const dictionaries = {
     },
     pricing: {
       title: "Plany subskrypcji",
-      lead: "Hutko/PUMB jest jedyną bramką płatności. Bez kluczy API przyciski działają w trybie demo/error-safe.",
+      lead: "WayForPay jest jedyną bramką płatności. Bez kluczy API przyciski działają w trybie demo/error-safe.",
       customer: "Dane płatnika",
       name: "Imię",
       phone: "Telefon",
       email: "Email",
-      pay: "Zapłać przez Hutko",
+      pay: "Zapłać przez WayForPay",
       free: "Aktywuj bezpłatnie",
       billing: "miesiąc",
-      success: "Checkout utworzony. Przekierowanie do Hutko..."
+      success: "Checkout utworzony. Przekierowanie do WayForPay..."
     },
     miniApp: {
       title: "Telegram Mini App login",
@@ -375,6 +381,7 @@ export const dictionaries = {
       onboarding: "Onboarding",
       pricing: "Subscription",
       miniApp: "Telegram Mini App",
+      installation: "Installation",
       buy: "Buy GS3",
       start: "Start",
       tryDemo: "Open demo",
@@ -393,23 +400,24 @@ export const dictionaries = {
       dashboard: "Dashboard",
       onboarding: "Onboarding",
       pricing: "Plans",
-      miniApp: "Mini App"
+      miniApp: "Mini App",
+      installation: "Installation"
     },
     home: {
       kicker: "Dexcom-style SaaS · Sibionics GS3 · AI layer",
-      title: "AI Diabetes SaaS for CGM, voice doctor, and Hutko subscriptions",
+      title: "AI Diabetes SaaS for CGM, voice doctor, and WayForPay subscriptions",
       lead:
         "A ready Next.js skeleton for Sibionics GS3: realtime glucose stream, AI prediction, voice assistant, Telegram Mini App login, Ukrainian default, and multi-language UI.",
       primaryCta: "Open dashboard",
       secondaryCta: "Configure profile",
-      metrics: ["Realtime CGM", "AI voice doctor", "Hutko billing", "Telegram Mini App"],
+      metrics: ["Realtime CGM", "AI voice doctor", "WayForPay billing", "Telegram Mini App"],
       featureTitle: "What is implemented",
       featureLead: "The logic works locally in demo/mock mode and is ready for real API keys.",
       features: [
         ["CGM stream", "SSE updates every few seconds, chart, trend, risk flags, and 30/60/120 min prediction."],
         ["AI doctor", "Text and voice dialogue with medical safety guardrails and no-key fallback."],
         ["Telegram Mini App", "initData HMAC validation, session creation, and WebApp SDK support."],
-        ["Hutko subscriptions", "Plans, PUMB/Hutko checkout, callback activation, and Telegram notifications."],
+        ["WayForPay subscriptions", "Plans, WayForPay checkout, callback activation, and Telegram notifications."],
         ["i18n", "Ukrainian by default, plus Russian, Polish, and English."],
         ["Dashboard", "CGM, AI prediction, voice doctor, subscription, and quick actions in one workspace."]
       ]
@@ -462,15 +470,15 @@ export const dictionaries = {
     },
     pricing: {
       title: "Subscription plans",
-      lead: "Hutko/PUMB is the only payment provider. Without API keys the buttons work in demo/error-safe mode.",
+      lead: "WayForPay is the only payment provider. Without API keys the buttons work in demo/error-safe mode.",
       customer: "Payment details",
       name: "Name",
       phone: "Phone",
       email: "Email",
-      pay: "Pay with Hutko",
+      pay: "Pay with WayForPay",
       free: "Activate free",
       billing: "month",
-      success: "Checkout created. Redirecting to Hutko..."
+      success: "Checkout created. Redirecting to WayForPay..."
     },
     miniApp: {
       title: "Telegram Mini App login",
