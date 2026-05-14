@@ -337,12 +337,18 @@ export default async function InstallationPage({ params }: { params: Promise<{ l
               </div>
 
               <div className="installation-gallery">
-                {galleryImages.map((src, index) => (
-                  <figure className="installation-gallery-card" key={src}>
-                    <img src={src} alt={t.imageAlts[index]} />
-                    <figcaption>{t.captions[index]}</figcaption>
-                  </figure>
-                ))}
+                <figure className="installation-gallery-card">
+                  <img src={galleryImages[0]} alt={t.imageAlts[0]} />
+                  <figcaption>{t.captions[0]}</figcaption>
+                </figure>
+                <div className="installation-gallery-row">
+                  {[1, 2].map((index) => (
+                    <figure className="installation-gallery-card installation-gallery-card--compact" key={galleryImages[index]}>
+                      <img src={galleryImages[index]} alt={t.imageAlts[index]} />
+                      <figcaption>{t.captions[index]}</figcaption>
+                    </figure>
+                  ))}
+                </div>
               </div>
 
               <div className="fixation-panel">

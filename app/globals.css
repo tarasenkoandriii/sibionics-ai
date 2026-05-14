@@ -1982,6 +1982,13 @@ h3 {
   margin: 24px 0 14px;
 }
 
+.installation-gallery-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 18px;
+}
+
 .installation-gallery-card {
   margin: 0;
   padding: 14px;
@@ -1989,6 +1996,10 @@ h3 {
   border-radius: 24px;
   background: #ffffff;
   box-shadow: 0 16px 40px rgba(17, 37, 43, 0.08);
+}
+
+.installation-gallery-card--compact {
+  flex: 0 1 calc(50% - 9px);
 }
 
 .installation-gallery-card img {
