@@ -2012,7 +2012,7 @@ h3 {
 .installation-gallery-image--rotated {
   max-width: 100%;
   margin: 0 auto;
-  transform: rotate(180deg) scale(1.3);
+  transform: rotate(270deg) scale(1.3);
   transform-origin: center;
 }
 
