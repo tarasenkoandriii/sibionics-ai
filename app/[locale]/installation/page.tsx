@@ -344,11 +344,17 @@ export default async function InstallationPage({ params }: { params: Promise<{ l
                 <div className="installation-gallery-row">
                   {[1, 2].map((index) => (
                     <figure className="installation-gallery-card installation-gallery-card--compact" key={galleryImages[index]}>
-                      <img
-                        className={index === 1 ? "installation-gallery-image--rotated" : undefined}
-                        src={galleryImages[index]}
-                        alt={t.imageAlts[index]}
-                      />
+                      {index === 1 ? (
+                        <div className="installation-gallery-rotated-frame">
+                          <img
+                            className="installation-gallery-image--rotated"
+                            src={galleryImages[index]}
+                            alt={t.imageAlts[index]}
+                          />
+                        </div>
+                      ) : (
+                        <img src={galleryImages[index]} alt={t.imageAlts[index]} />
+                      )}
                       <figcaption>{t.captions[index]}</figcaption>
                     </figure>
                   ))}
