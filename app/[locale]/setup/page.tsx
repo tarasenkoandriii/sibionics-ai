@@ -429,6 +429,77 @@ const sugarJoyScreenshots = {
   ],
 } satisfies Record<Locale, Array<{ src: string; alt: string; caption: string }>>;
 
+const xdripScreenshots = {
+  ua: [
+    {
+      src: "/setup/xdrip-select-source.jpg",
+      alt: "Екран вибору апаратного джерела даних Xdrip з пунктом 640G / EverSense",
+      caption: "В Xdrip оберіть апаратне джерело даних 640G / EverSense.",
+    },
+    {
+      src: "/setup/xdrip-sensor-start.jpg",
+      alt: "Бічне меню Xdrip з пунктом запуску сенсора",
+      caption: "Відкрийте меню та натисніть «Запустити сенсор».",
+    },
+    {
+      src: "/setup/xdrip-installed-not-today.jpg",
+      alt: "Діалог Xdrip з вибором, чи сенсор введено сьогодні",
+      caption: "У діалозі запуску сенсора оберіть «Не сьогодні».",
+    },
+  ],
+  ru: [
+    {
+      src: "/setup/xdrip-select-source.jpg",
+      alt: "Экран выбора аппаратного источника данных Xdrip с пунктом 640G / EverSense",
+      caption: "В Xdrip выберите аппаратный источник данных 640G / EverSense.",
+    },
+    {
+      src: "/setup/xdrip-sensor-start.jpg",
+      alt: "Боковое меню Xdrip с пунктом запуска сенсора",
+      caption: "Откройте меню и нажмите «Запустить сенсор».",
+    },
+    {
+      src: "/setup/xdrip-installed-not-today.jpg",
+      alt: "Диалог Xdrip с выбором, был ли сенсор введен сегодня",
+      caption: "В диалоге запуска сенсора выберите «Не сегодня».",
+    },
+  ],
+  pl: [
+    {
+      src: "/setup/xdrip-select-source.jpg",
+      alt: "Ekran wyboru sprzętowego źródła danych Xdrip z opcją 640G / EverSense",
+      caption: "W Xdrip wybierz sprzętowe źródło danych 640G / EverSense.",
+    },
+    {
+      src: "/setup/xdrip-sensor-start.jpg",
+      alt: "Menu boczne Xdrip z opcją uruchomienia sensora",
+      caption: "Otwórz menu i wybierz uruchomienie sensora.",
+    },
+    {
+      src: "/setup/xdrip-installed-not-today.jpg",
+      alt: "Okno Xdrip z pytaniem, czy sensor został założony dzisiaj",
+      caption: "W oknie uruchomienia sensora wybierz, że nie został założony dzisiaj.",
+    },
+  ],
+  en: [
+    {
+      src: "/setup/xdrip-select-source.jpg",
+      alt: "Xdrip hardware data source screen with 640G / EverSense selected",
+      caption: "In Xdrip, select 640G / EverSense as the hardware data source.",
+    },
+    {
+      src: "/setup/xdrip-sensor-start.jpg",
+      alt: "Xdrip side menu with the start sensor option",
+      caption: "Open the menu and choose the sensor start option.",
+    },
+    {
+      src: "/setup/xdrip-installed-not-today.jpg",
+      alt: "Xdrip dialog asking whether the sensor was inserted today",
+      caption: "In the start dialog, choose that the sensor was not inserted today.",
+    },
+  ],
+} satisfies Record<Locale, Array<{ src: string; alt: string; caption: string }>>;
+
 export default async function SetupPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: rawLocale } = await params;
   const locale = normalizeLocale(rawLocale);
@@ -495,6 +566,14 @@ export default async function SetupPage({ params }: { params: Promise<{ locale: 
               </ol>
 
               <h2>{t.xdripTitle}</h2>
+              <div className="setup-screenshot-gallery" aria-label={t.xdripTitle}>
+                {xdripScreenshots[locale].map((image) => (
+                  <figure className="setup-screenshot-card" key={image.src}>
+                    <img src={image.src} alt={image.alt} />
+                    <figcaption>{image.caption}</figcaption>
+                  </figure>
+                ))}
+              </div>
               <ol>
                 {t.xdripSteps.map((step) => (
                   <li key={step}>{step}</li>
