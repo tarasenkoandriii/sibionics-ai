@@ -1730,6 +1730,29 @@ h3 {
   font-size: 0.95rem;
 }
 
+
+.dashboard-development-notice {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 1rem;
+  max-width: 760px;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(245, 158, 11, 0.32);
+  border-radius: 18px;
+  background: rgba(255, 251, 235, 0.92);
+  color: #7c2d12;
+  box-shadow: 0 12px 30px rgba(146, 64, 14, 0.08);
+}
+
+.dashboard-development-notice strong {
+  font-size: 1rem;
+}
+
+.dashboard-development-notice span {
+  color: #92400e;
+  line-height: 1.55;
+}
+
 .vertical-actions {
   align-items: flex-end;
   display: flex;
