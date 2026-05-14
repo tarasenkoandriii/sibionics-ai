@@ -2008,6 +2008,14 @@ h3 {
   border-radius: 18px;
 }
 
+
+.installation-gallery-image--rotated {
+  max-width: 76%;
+  margin: 14% auto;
+  transform: rotate(90deg);
+  transform-origin: center;
+}
+
 .installation-gallery-card figcaption {
   margin-top: 12px;
   color: var(--muted);
