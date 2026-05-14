@@ -233,7 +233,7 @@ export function CheckoutForm({
             <option value="nova_poshta">Новая почта</option>
             {allowUkrposhta ? <option value="ukrposhta">Укрпочта</option> : null}
           </select>
-          {!allowUkrposhta ? <small>Укрпочта недоступна: не задан UKRPOSHTA_BEARER.</small> : null}
+          {!allowUkrposhta ? <small>Укрпочта недоступна по техническим причинам</small> : null}
         </label>
 
         <label className="field">
