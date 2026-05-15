@@ -1,4 +1,5 @@
 import InstallTelegramApp from "./InstallTelegramApp";
+import SensorInstallPhotoCheck from "./SensorInstallPhotoCheck";
 import { InstallationContent } from "@/components/pages/InstallationContent";
 
 export const metadata = {
@@ -11,6 +12,7 @@ export default function InstallPage() {
     <>
       <InstallTelegramApp />
       <InstallationContent locale="ua" miniApp />
+      <SensorInstallPhotoCheck />
     </>
   );
 }
