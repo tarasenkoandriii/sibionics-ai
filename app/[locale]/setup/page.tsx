@@ -525,6 +525,29 @@ const jugglucoProblemScreenshot = {
   },
 } satisfies Record<Locale, { src: string; alt: string; caption: string }>;
 
+const sugarJoyClearDataScreenshot = {
+  ua: {
+    src: "/setup/sugar-joy-clear-data.jpg",
+    alt: "Налаштування Android для Sugar Joy з діалогом очищення всіх даних",
+    caption: "У налаштуваннях телефону для Sugar Joy оберіть очищення всіх даних додатка.",
+  },
+  ru: {
+    src: "/setup/sugar-joy-clear-data.jpg",
+    alt: "Настройки Android для Sugar Joy с диалогом очистки всех данных",
+    caption: "В настройках телефона для Sugar Joy выберите очистку всех данных приложения.",
+  },
+  pl: {
+    src: "/setup/sugar-joy-clear-data.jpg",
+    alt: "Ustawienia Androida dla Sugar Joy z oknem czyszczenia wszystkich danych",
+    caption: "W ustawieniach telefonu dla Sugar Joy wybierz wyczyszczenie wszystkich danych aplikacji.",
+  },
+  en: {
+    src: "/setup/sugar-joy-clear-data.jpg",
+    alt: "Android settings for Sugar Joy showing the clear all data dialog",
+    caption: "In the phone settings for Sugar Joy, choose to clear all app data.",
+  },
+} satisfies Record<Locale, { src: string; alt: string; caption: string }>;
+
 const calibrationScreenshots = {
   ua: [
     {
@@ -656,7 +679,7 @@ export default async function SetupPage({ params }: { params: Promise<{ locale: 
                 <a className="btn btn-secondary" href={localePath(locale, "dashboard")}>{t.dashboardCta}</a>
               </div>
             </div>
-            <div className="installation-product-card setup-product-card">
+            <div className="installation-product-card">
               <div className="installation-card-note">
                 <strong>Android</strong>
                 <span>Juggluco · Sugar Joy · Xdrip · Nightscout</span>
@@ -734,26 +757,30 @@ export default async function SetupPage({ params }: { params: Promise<{ locale: 
                 <strong>GS3</strong>
                 <p>{t.oneAppWarning}</p>
               </div>
-              <div className="setup-boundary-panel setup-problem-boundary">
-                <div className="setup-boundary-tags" aria-label="Sugar Joy boundary">
-                  <span className="kicker">Sugar Joy</span>
-                </div>
-                <ul>
-                  {t.problemItems.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-                <figure className="setup-screenshot-card setup-problem-screenshot-card">
-                  <img src={jugglucoProblemScreenshot[locale].src} alt={jugglucoProblemScreenshot[locale].alt} />
-                  <figcaption>{jugglucoProblemScreenshot[locale].caption}</figcaption>
-                </figure>
-              </div>
+              <ul>
+                {t.problemItems.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+              <figure className="setup-screenshot-card setup-problem-screenshot-card">
+                <img src={jugglucoProblemScreenshot[locale].src} alt={jugglucoProblemScreenshot[locale].alt} />
+                <figcaption>{jugglucoProblemScreenshot[locale].caption}</figcaption>
+              </figure>
 
               <div className="fixation-panel">
                 <span className="kicker">Juggluco</span>
                 <h2>{t.jugglucoRecoveryTitle}</h2>
                 <ol>
-                  {t.jugglucoRecoverySteps.map((step) => (
+                  {t.jugglucoRecoverySteps.slice(0, 3).map((step) => (
+                    <li key={step}>{step}</li>
+                  ))}
+                </ol>
+                <figure className="setup-screenshot-card setup-recovery-screenshot-card">
+                  <img src={sugarJoyClearDataScreenshot[locale].src} alt={sugarJoyClearDataScreenshot[locale].alt} />
+                  <figcaption>{sugarJoyClearDataScreenshot[locale].caption}</figcaption>
+                </figure>
+                <ol start={4}>
+                  {t.jugglucoRecoverySteps.slice(3).map((step) => (
                     <li key={step}>{step}</li>
                   ))}
                 </ol>
