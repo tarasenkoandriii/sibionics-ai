@@ -500,6 +500,118 @@ const xdripScreenshots = {
   ],
 } satisfies Record<Locale, Array<{ src: string; alt: string; caption: string }>>;
 
+
+const calibrationScreenshots = {
+  ua: [
+    {
+      src: "/setup/xdrip-calibration-settings.jpg",
+      alt: "Налаштування Xdrip з пунктом менш поширених налаштувань",
+      caption: "У налаштуваннях Xdrip відкрийте «Менш поширені налаштування».",
+    },
+    {
+      src: "/setup/xdrip-calibration-advanced.jpg",
+      alt: "Менш поширені налаштування Xdrip з пунктом продвинутої калібровки",
+      caption: "Перейдіть у розділ «Продвинута калібровка».",
+    },
+    {
+      src: "/setup/xdrip-calibration-plugin.jpg",
+      alt: "Екран продвинутої калібровки Xdrip з пунктом плагіна калібровки",
+      caption: "Відкрийте пункт «Плагін калібровки».",
+    },
+    {
+      src: "/setup/xdrip-calibration-plugin-select.jpg",
+      alt: "Діалог вибору плагіна калібровки Xdrip Original",
+      caption: "Оберіть «xDrip Original — classic algorithm».",
+    },
+    {
+      src: "/setup/xdrip-calibration-plugin-enable.jpg",
+      alt: "Екран Xdrip з увімкненими параметрами показу та використання даних з плагіна",
+      caption: "Увімкніть показ графіка та використання глюкози з плагіна.",
+    },
+  ],
+  ru: [
+    {
+      src: "/setup/xdrip-calibration-settings.jpg",
+      alt: "Настройки Xdrip с пунктом менее распространенных настроек",
+      caption: "В настройках Xdrip откройте «Менее распространенные настройки».",
+    },
+    {
+      src: "/setup/xdrip-calibration-advanced.jpg",
+      alt: "Менее распространенные настройки Xdrip с пунктом продвинутой калибровки",
+      caption: "Перейдите в раздел «Продвинутая калибровка».",
+    },
+    {
+      src: "/setup/xdrip-calibration-plugin.jpg",
+      alt: "Экран продвинутой калибровки Xdrip с пунктом плагина калибровки",
+      caption: "Откройте пункт «Плагин калибровки».",
+    },
+    {
+      src: "/setup/xdrip-calibration-plugin-select.jpg",
+      alt: "Диалог выбора плагина калибровки Xdrip Original",
+      caption: "Выберите «xDrip Original — classic algorithm».",
+    },
+    {
+      src: "/setup/xdrip-calibration-plugin-enable.jpg",
+      alt: "Экран Xdrip с включенными параметрами показа и использования данных плагина",
+      caption: "Включите показ графика и использование глюкозы из плагина.",
+    },
+  ],
+  pl: [
+    {
+      src: "/setup/xdrip-calibration-settings.jpg",
+      alt: "Ustawienia Xdrip z mniej popularnymi ustawieniami",
+      caption: "W ustawieniach Xdrip otwórz mniej popularne ustawienia.",
+    },
+    {
+      src: "/setup/xdrip-calibration-advanced.jpg",
+      alt: "Mniej popularne ustawienia Xdrip z zaawansowaną kalibracją",
+      caption: "Przejdź do sekcji zaawansowanej kalibracji.",
+    },
+    {
+      src: "/setup/xdrip-calibration-plugin.jpg",
+      alt: "Ekran zaawansowanej kalibracji Xdrip z wtyczką kalibracji",
+      caption: "Otwórz opcję wtyczki kalibracji.",
+    },
+    {
+      src: "/setup/xdrip-calibration-plugin-select.jpg",
+      alt: "Okno wyboru wtyczki kalibracji Xdrip Original",
+      caption: "Wybierz „xDrip Original — classic algorithm”.",
+    },
+    {
+      src: "/setup/xdrip-calibration-plugin-enable.jpg",
+      alt: "Ekran Xdrip z włączonym pokazywaniem i używaniem glukozy z wtyczki",
+      caption: "Włącz wykres i używanie glukozy z wtyczki.",
+    },
+  ],
+  en: [
+    {
+      src: "/setup/xdrip-calibration-settings.jpg",
+      alt: "Xdrip settings screen with less common settings highlighted",
+      caption: "In Xdrip settings, open less common settings.",
+    },
+    {
+      src: "/setup/xdrip-calibration-advanced.jpg",
+      alt: "Xdrip less common settings screen with advanced calibration highlighted",
+      caption: "Go to advanced calibration.",
+    },
+    {
+      src: "/setup/xdrip-calibration-plugin.jpg",
+      alt: "Xdrip advanced calibration screen with calibration plugin highlighted",
+      caption: "Open the calibration plugin option.",
+    },
+    {
+      src: "/setup/xdrip-calibration-plugin-select.jpg",
+      alt: "Xdrip calibration plugin dialog with Xdrip Original selected",
+      caption: "Select “xDrip Original — classic algorithm”.",
+    },
+    {
+      src: "/setup/xdrip-calibration-plugin-enable.jpg",
+      alt: "Xdrip screen with plugin graph and glucose options enabled",
+      caption: "Enable showing the plugin graph and using plugin glucose values.",
+    },
+  ],
+} satisfies Record<Locale, Array<{ src: string; alt: string; caption: string }>>;
+
 export default async function SetupPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: rawLocale } = await params;
   const locale = normalizeLocale(rawLocale);
@@ -580,8 +692,16 @@ export default async function SetupPage({ params }: { params: Promise<{ locale: 
                 ))}
               </ol>
 
+              <h2>{t.calibrationTitle}</h2>
+              <div className="setup-screenshot-gallery setup-calibration-gallery" aria-label={t.calibrationTitle}>
+                {calibrationScreenshots[locale].map((image) => (
+                  <figure className="setup-screenshot-card setup-calibration-card" key={image.src}>
+                    <img src={image.src} alt={image.alt} />
+                    <figcaption>{image.caption}</figcaption>
+                  </figure>
+                ))}
+              </div>
               <div className="info-panel">
-                <strong>{t.calibrationTitle}</strong>
                 <p>{t.calibrationText}</p>
               </div>
 
