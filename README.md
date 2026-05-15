@@ -276,3 +276,18 @@ MINI_APP=false
 - `MINI_APP=false`: the Mini App menu item is hidden.
 
 The order form also stores Telegram preferences: notify about order updates and add the customer to a Telegram group if needed.
+
+### AI photo analysis configuration
+
+For the Telegram Mini App sensor installation photo check and other `/api/ai/analyze` modes:
+
+```env
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-5.4-mini
+AI_ANALYSIS_MOCK=false
+AI_ANALYSIS_MAX_IMAGE_MB=1
+AI_ANALYSIS_MAX_OUTPUT_TOKENS=500
+```
+
+Use `AI_ANALYSIS_MOCK=true` for local/demo testing without an OpenAI API key.
+
