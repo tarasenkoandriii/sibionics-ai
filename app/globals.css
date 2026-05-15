@@ -2280,39 +2280,36 @@ h3 {
   cursor: pointer;
 }
 
-.install-photo-fab:disabled,
-.install-photo-primary-button:disabled {
+.install-photo-fab:disabled {
   cursor: wait;
   opacity: 0.72;
 }
 
-.install-photo-bottom-bar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 88;
-  padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.96) 28%, #ffffff 100%);
+
+.install-photo-recommendation-container {
+  margin-top: 22px;
+  margin-bottom: calc(24px + env(safe-area-inset-bottom));
 }
 
-.install-photo-primary-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  min-height: 58px;
-  border: 0;
-  border-radius: 22px;
-  color: #ffffff;
-  background: linear-gradient(135deg, var(--brand), var(--brand-2));
-  box-shadow: 0 18px 42px rgba(8, 183, 179, 0.28);
+.install-photo-recommendation-panel {
+  padding: clamp(18px, 5vw, 24px);
+  border: 1px solid rgba(8, 183, 179, 0.18);
+  border-radius: 26px;
+  background: linear-gradient(135deg, rgba(8, 183, 179, 0.1), rgba(255, 255, 255, 0.96));
+  box-shadow: 0 18px 46px rgba(17, 37, 43, 0.08);
+}
+
+.install-photo-recommendation-panel h2 {
+  margin: 6px 0 10px;
+  font-size: clamp(24px, 7vw, 34px);
+  line-height: 1.05;
+}
+
+.install-photo-recommendation-panel p {
+  margin: 0;
+  color: var(--muted);
   font-size: 16px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  cursor: pointer;
+  line-height: 1.65;
 }
 
 .install-photo-result-sheet {
@@ -2438,7 +2435,7 @@ h3 {
 }
 
 .telegram-install-main {
-  padding-bottom: 96px;
+  padding-bottom: 28px;
 }
 
 .install-photo-warning {

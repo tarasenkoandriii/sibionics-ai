@@ -25,7 +25,6 @@ type CheckStatus = "idle" | "capturing" | "analyzing" | "done" | "error";
 
 const TEXT = {
   topButtonLabel: "Зробити фото установки сенсора",
-  bottomButton: "перевірити якість установки сенсора",
   analyzing: "AI перевіряє фото установки...",
   title: "Результат перевірки установки",
   retry: "Зробити інше фото",
@@ -153,17 +152,16 @@ export default function SensorInstallPhotoCheck() {
         <span aria-hidden="true">📷</span>
       </button>
 
-      <div className="install-photo-bottom-bar">
-        <button
-          type="button"
-          className="install-photo-primary-button"
-          onClick={openCamera}
-          disabled={status === "analyzing"}
-        >
-          <span aria-hidden="true">📷</span>
-          {status === "analyzing" ? TEXT.analyzing : TEXT.bottomButton}
-        </button>
-      </div>
+      <section className="container install-photo-recommendation-container" aria-label="Рекомендація">
+        <div className="install-photo-recommendation-panel">
+          <span className="kicker">AI Photo Check</span>
+          <h2>Рекомендація</h2>
+          <p>
+            После установки сенсора нажать кнопку справа вверху страницы с фотоаппаратом на ней и
+            проверить качество установки сенсора и получить рекомендации от AI-доктора.
+          </p>
+        </div>
+      </section>
 
       {hasBottomSheet && (
         <aside className="install-photo-result-sheet" aria-live="polite">
