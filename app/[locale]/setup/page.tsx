@@ -501,6 +501,30 @@ const xdripScreenshots = {
 } satisfies Record<Locale, Array<{ src: string; alt: string; caption: string }>>;
 
 
+
+const jugglucoProblemScreenshot = {
+  ua: {
+    src: "/setup/juggluco-android-checkbox.jpg",
+    alt: "Меню датчика Juggluco з увімкненою галочкою Android",
+    caption: "Якщо використовується Android 13, у меню «Датчик» увімкніть галочку «Android».",
+  },
+  ru: {
+    src: "/setup/juggluco-android-checkbox.jpg",
+    alt: "Меню датчика Juggluco с включенной галочкой Android",
+    caption: "Если используется Android 13, в меню «Датчик» включите галочку «Android».",
+  },
+  pl: {
+    src: "/setup/juggluco-android-checkbox.jpg",
+    alt: "Menu sensora Juggluco z włączonym polem Android",
+    caption: "Jeśli używasz Androida 13, w menu «Sensor» włącz opcję «Android».",
+  },
+  en: {
+    src: "/setup/juggluco-android-checkbox.jpg",
+    alt: "Juggluco sensor menu with the Android checkbox enabled",
+    caption: "If you use Android 13, enable the “Android” checkbox in the Sensor menu.",
+  },
+} satisfies Record<Locale, { src: string; alt: string; caption: string }>;
+
 const calibrationScreenshots = {
   ua: [
     {
@@ -632,7 +656,7 @@ export default async function SetupPage({ params }: { params: Promise<{ locale: 
                 <a className="btn btn-secondary" href={localePath(locale, "dashboard")}>{t.dashboardCta}</a>
               </div>
             </div>
-            <div className="installation-product-card">
+            <div className="installation-product-card setup-product-card">
               <div className="installation-card-note">
                 <strong>Android</strong>
                 <span>Juggluco · Sugar Joy · Xdrip · Nightscout</span>
@@ -710,11 +734,20 @@ export default async function SetupPage({ params }: { params: Promise<{ locale: 
                 <strong>GS3</strong>
                 <p>{t.oneAppWarning}</p>
               </div>
-              <ul>
-                {t.problemItems.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
+              <div className="setup-boundary-panel setup-problem-boundary">
+                <div className="setup-boundary-tags" aria-label="Sugar Joy boundary">
+                  <span className="kicker">Sugar Joy</span>
+                </div>
+                <ul>
+                  {t.problemItems.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+                <figure className="setup-screenshot-card setup-problem-screenshot-card">
+                  <img src={jugglucoProblemScreenshot[locale].src} alt={jugglucoProblemScreenshot[locale].alt} />
+                  <figcaption>{jugglucoProblemScreenshot[locale].caption}</figcaption>
+                </figure>
+              </div>
 
               <div className="fixation-panel">
                 <span className="kicker">Juggluco</span>
