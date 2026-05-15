@@ -8,21 +8,17 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test:wayforpay": "node scripts/test-wayforpay.js",
-    "test:wayforpay:live": "node scripts/wayforpay-live-request/test-wayforpay.js",
-    "test:pumb-open-banking": "node scripts/pumb-open-banking/pumb-open-banking-smoke-test.js",
-    "test:np:city-ref": "node scripts/get-nova-poshta-city-ref.js",
-    "test:nova-poshta-ttn": "node scripts/test-nova-poshta-ttn.js",
-    "test:ukrposhta-ttn": "node scripts/test-ukrposhta-ttn.js"
+    "test:wayforpay:full": "node scripts/test-wayforpay.js",
+    "test:telegram:smoke": "node scripts/test-telegram-smoke.js",
+    "test:telegram:nightly": "node scripts/test-telegram-nightly-e2e.js",
+    "test:grok:sensor-install": "node scripts/test-grok-sensor-install-photo.js",
+    "test:grok:models": "node scripts/test-grok-models.js"
   },
   "dependencies": {
     "jose": "^5.9.6",
     "next": "^15.2.4",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "@nestjs/common": "^10.4.15",
-    "@nestjs/core": "^10.4.15",
-    "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

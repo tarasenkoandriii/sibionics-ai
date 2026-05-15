@@ -1,40 +1,12 @@
 import { NextResponse } from "next/server";
 import { AI_MODES, type AiModeId } from "@/lib/product";
 import { analysisSchema, getAnalysisPrompt } from "@/lib/ai-prompts";
+import { callGrokChatCompletion, extractGrokModelIds, getGrokVisionModels, isGrokRetryableModelError, listGrokModels, mergeGrokModelCandidates, parseJsonFromText, readBooleanEnv, readPositiveIntegerEnv, readPositiveNumberEnv } from "@/lib/grok";
 
 const allowedModes = new Set<string>(AI_MODES.map((mode) => mode.id));
-const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
-const DEFAULT_OPENAI_MODEL = "gpt-5.4-mini";
 const DEFAULT_MAX_IMAGE_MB = 1;
 const DEFAULT_MAX_OUTPUT_TOKENS = 500;
-
-function readBooleanEnv(name: string, fallback = false) {
-  const raw = process.env[name];
-  if (raw === undefined) return fallback;
-  return ["1", "true", "yes", "on"].includes(raw.trim().toLowerCase());
-}
-
-function readPositiveNumberEnv(name: string, fallback: number) {
-  const raw = process.env[name];
-  if (!raw) return fallback;
-
-  const value = Number(raw);
-  return Number.isFinite(value) && value > 0 ? value : fallback;
-}
-
-function readPositiveIntegerEnv(name: string, fallback: number) {
-  return Math.round(readPositiveNumberEnv(name, fallback));
-}
-
-function getOpenAiKey() {
-  const key = process.env.OPENAI_API_KEY;
-  if (!key) throw new Error("OPENAI_API_KEY is not configured");
-  return key;
-}
-
-function getModel() {
-  return process.env.OPENAI_MODEL || DEFAULT_OPENAI_MODEL;
-}
+const DEFAULT_AUTO_DISCOVER_GROK_MODELS = true;
 
 function getMaxImageMb() {
   return readPositiveNumberEnv("AI_ANALYSIS_MAX_IMAGE_MB", DEFAULT_MAX_IMAGE_MB);
@@ -52,13 +24,17 @@ function isMockAnalysisEnabled() {
   return readBooleanEnv("AI_ANALYSIS_MOCK", false);
 }
 
+function isGrokModelAutoDiscoveryEnabled() {
+  return readBooleanEnv("GROK_AUTO_DISCOVER_MODELS", DEFAULT_AUTO_DISCOVER_GROK_MODELS);
+}
+
 function getMockAnalysis(mode: AiModeId) {
   const sensorTapeResult = {
     summary: "Демо-перевірка: AI_ANALYSIS_MOCK=true. Видимих критичних ознак проблеми не виявлено, але якість фіксації потрібно оцінити вручну перед використанням.",
     insights: [
       "Фото прийнято у режимі перевірки установки сенсора.",
       "У mock-режимі реальний аналіз зображення не виконується.",
-      "Для справжньої оцінки вимкніть AI_ANALYSIS_MOCK і задайте OPENAI_API_KEY."
+      "Для справжньої оцінки вимкніть AI_ANALYSIS_MOCK і задайте XAI_API_KEY."
     ],
     possible_risks: [
       "Можливий перекіс сенсора або часткове відклеювання тейпа потрібно перевіряти на реальному AI-аналізі.",
@@ -79,34 +55,10 @@ function getMockAnalysis(mode: AiModeId) {
         summary: "Демо-результат AI_ANALYSIS_MOCK=true. Реальний AI-аналіз не виконувався.",
         insights: ["Файл успішно отримано endpoint-ом AI-аналізу."],
         possible_risks: ["Mock-режим не оцінює реальні ризики."],
-        recommended_next_steps: ["Вимкніть AI_ANALYSIS_MOCK і задайте OPENAI_API_KEY для реального аналізу."],
+        recommended_next_steps: ["Вимкніть AI_ANALYSIS_MOCK і задайте XAI_API_KEY для реального аналізу."],
         confidence: "low",
         medical_disclaimer: "Це тестовий результат, не медична діагностика."
       };
-}
-
-function extractOutputText(payload: any): string {
-  if (typeof payload.output_text === "string") return payload.output_text;
-
-  const parts: string[] = [];
-  for (const item of payload.output || []) {
-    for (const content of item.content || []) {
-      if (typeof content.text === "string") parts.push(content.text);
-      if (typeof content.output_text === "string") parts.push(content.output_text);
-    }
-  }
-
-  return parts.join("\n");
-}
-
-function parseJsonOutput(text: string) {
-  try {
-    return JSON.parse(text);
-  } catch {
-    const match = text.match(/\{[\s\S]*\}/);
-    if (match) return JSON.parse(match[0]);
-    throw new Error("AI response is not valid JSON");
-  }
 }
 
 export async function POST(request: Request) {
@@ -151,74 +103,100 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const dataUrl = `data:${file.type};base64,${buffer.toString("base64")}`;
 
-    const prompt = getAnalysisPrompt(mode);
-    const model = getModel();
-    const maxOutputTokens = getMaxOutputTokens();
-    const openAiResponse = await fetch(OPENAI_RESPONSES_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${getOpenAiKey()}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model,
-        input: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "input_text",
-                text: prompt
-              },
-              {
-                type: "input_image",
-                image_url: dataUrl
-              }
-            ]
-          }
-        ],
-        text: {
-          format: {
-            type: "json_schema",
-            name: "SugarPhotoAnalysis",
-            strict: true,
-            schema: analysisSchema
-          }
-        },
-        max_output_tokens: maxOutputTokens,
-        store: false
-      }),
-      cache: "no-store"
-    });
+    const prompt = `${getAnalysisPrompt(mode)}
 
-    const rawText = await openAiResponse.text();
-    let payload: any;
-    try {
-      payload = JSON.parse(rawText);
-    } catch {
-      payload = { raw: rawText };
+Return strictly valid JSON matching this JSON Schema. Do not wrap it in markdown. Schema:
+${JSON.stringify(analysisSchema)}`;
+    let models = getGrokVisionModels();
+    const modelDiscovery: { enabled: boolean; status?: number; error?: string; models?: string[] } = {
+      enabled: isGrokModelAutoDiscoveryEnabled()
+    };
+
+    if (modelDiscovery.enabled) {
+      try {
+        const { response: modelsResponse, payload: modelsPayload } = await listGrokModels();
+        modelDiscovery.status = modelsResponse.status;
+
+        if (modelsResponse.ok) {
+          const availableModels = extractGrokModelIds(modelsPayload);
+          modelDiscovery.models = availableModels;
+          models = mergeGrokModelCandidates(models, availableModels);
+        } else {
+          modelDiscovery.error = String(modelsPayload?.error?.message || modelsPayload?.error || "Unable to list Grok models");
+        }
+      } catch (error) {
+        modelDiscovery.error = error instanceof Error ? error.message : "Unable to list Grok models";
+      }
     }
 
-    if (!openAiResponse.ok) {
+    if (models.length === 0) {
       return NextResponse.json(
-        { error: payload.error?.message || "OpenAI analysis failed", details: payload, model },
-        { status: 502 }
+        {
+          error: "No Grok chat model candidates configured for image analysis.",
+          hint: "Set GROK_VISION_MODEL to a valid xAI chat model from npm run test:grok:models, for example GROK_VISION_MODEL=grok-4. Do not use image generation models like grok-imagine-image-pro or OpenRouter-style IDs like grok/compound-mini.",
+          modelDiscovery
+        },
+        { status: 500 }
       );
     }
 
-    const text = extractOutputText(payload);
-    const result = parseJsonOutput(text);
+    const maxOutputTokens = getMaxOutputTokens();
+    const attemptedModels: Array<{ model: string; status: number; error?: string }> = [];
+    let lastPayload: any = null;
 
-    return NextResponse.json({
-      result,
-      mode,
-      model,
-      mock: false,
-      limits: {
-        maxImageMb,
-        maxOutputTokens
+    for (const model of models) {
+      const { response: grokResponse, payload } = await callGrokChatCompletion({
+        model,
+        maxTokens: maxOutputTokens,
+        responseFormat: { type: "json_object" },
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: prompt },
+              { type: "image_url", image_url: { url: dataUrl } }
+            ]
+          }
+        ]
+      });
+
+      if (grokResponse.ok) {
+        const text = payload?.choices?.[0]?.message?.content || "";
+        const result = parseJsonFromText(text);
+
+        return NextResponse.json({
+          result,
+          mode,
+          model,
+          attemptedModels,
+          modelDiscovery,
+          mock: false,
+          limits: {
+            maxImageMb,
+            maxOutputTokens
+          }
+        });
       }
-    });
+
+      const error = payload?.error?.message || payload?.error || "Grok analysis failed";
+      attemptedModels.push({ model, status: grokResponse.status, error: String(error) });
+      lastPayload = payload;
+
+      if (!isGrokRetryableModelError(payload)) {
+        break;
+      }
+    }
+
+    return NextResponse.json(
+      {
+        error: lastPayload?.error?.message || lastPayload?.error || "Grok analysis failed",
+        details: lastPayload,
+        model: attemptedModels.at(-1)?.model || models[0],
+        attemptedModels,
+        modelDiscovery
+      },
+      { status: 502 }
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : "AI analysis error";
     return NextResponse.json({ error: message }, { status: 500 });

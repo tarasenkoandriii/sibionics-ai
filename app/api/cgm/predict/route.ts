@@ -1,75 +1,37 @@
 import { NextResponse } from "next/server";
 import { buildMockTimeline, predictGlucose, type CgmPrediction, type CgmReading } from "@/lib/cgm";
+import { callGrokChatCompletion, extractGrokText, getGrokMaxOutputTokens, getGrokModel, hasGrokApiKey, parseJsonFromText } from "@/lib/grok";
 
 export const runtime = "nodejs";
 
-const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
-
-function extractOutputText(payload: any): string {
-  if (typeof payload.output_text === "string") return payload.output_text;
-  const parts: string[] = [];
-  for (const item of payload.output || []) {
-    for (const content of item.content || []) {
-      if (typeof content.text === "string") parts.push(content.text);
-      if (typeof content.output_text === "string") parts.push(content.output_text);
-    }
-  }
-  return parts.join("\n");
-}
-
-async function refineWithOpenAi(prediction: CgmPrediction, locale: string) {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey || process.env.CGM_AI_PREDICTION !== "true") return prediction;
+async function refineWithGrok(prediction: CgmPrediction, locale: string) {
+  if (!hasGrokApiKey() || process.env.CGM_AI_PREDICTION !== "true") return prediction;
 
   try {
-    const response = await fetch(OPENAI_RESPONSES_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || "gpt-4.1-mini",
-        input: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "input_text",
-                text:
-                  `You are a cautious diabetes CGM analysis assistant. Locale: ${locale}. ` +
-                  `Rewrite the summary and suggestedActions for this prediction. Do not prescribe medication. JSON only.\n` +
-                  JSON.stringify(prediction)
-              }
-            ]
-          }
-        ],
-        text: {
-          format: {
-            type: "json_schema",
-            name: "CgmPredictionRefinement",
-            strict: true,
-            schema: {
-              type: "object",
-              additionalProperties: false,
-              properties: {
-                summary: { type: "string" },
-                suggestedActions: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 5 }
-              },
-              required: ["summary", "suggestedActions"]
-            }
-          }
+    const model = getGrokModel();
+    const { response, payload } = await callGrokChatCompletion({
+      model,
+      maxTokens: getGrokMaxOutputTokens(700),
+      responseFormat: { type: "json_object" },
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a cautious diabetes CGM analysis assistant. Do not diagnose, prescribe, or calculate insulin doses. Return valid JSON only."
         },
-        store: false,
-        max_output_tokens: 700
-      }),
-      cache: "no-store"
+        {
+          role: "user",
+          content:
+            `Locale: ${locale}. Rewrite the summary and suggestedActions for this prediction. ` +
+            `JSON schema: {"summary":"string","suggestedActions":["string"]}.\n` +
+            JSON.stringify(prediction)
+        }
+      ]
     });
 
     if (!response.ok) return prediction;
-    const payload = await response.json();
-    const parsed = JSON.parse(extractOutputText(payload));
-    return { ...prediction, engine: "openai" as const, summary: parsed.summary, suggestedActions: parsed.suggestedActions };
+    const parsed = parseJsonFromText(extractGrokText(payload));
+    return { ...prediction, engine: "grok" as const, summary: parsed.summary, suggestedActions: parsed.suggestedActions };
   } catch {
     return prediction;
   }
@@ -86,9 +48,9 @@ export async function POST(request: Request) {
     const basePrediction = predictGlucose(readings, {
       mealCarbsGrams,
       activeInsulinUnits,
-      engine: process.env.CGM_AI_PREDICTION === "true" ? "openai-ready" : "mock"
+      engine: process.env.CGM_AI_PREDICTION === "true" ? "grok-ready" : "mock"
     });
-    const prediction = await refineWithOpenAi(basePrediction, locale);
+    const prediction = await refineWithGrok(basePrediction, locale);
 
     return NextResponse.json({ prediction });
   } catch (error) {

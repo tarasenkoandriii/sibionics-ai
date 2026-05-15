@@ -68,7 +68,7 @@ export const dictionaries = {
       featureLead: "Логіка працює локально в demo/mock режимі та готова до підключення реальних ключів API.",
       features: [
         ["CGM stream", "SSE-потік кожні кілька секунд, графік, тренд, ризики і прогноз на 30/60/120 хв."],
-        ["AI doctor", "Текстовий і голосовий діалог з медичними safety-обмеженнями та fallback без ключа OpenAI."],
+        ["AI doctor", "Текстовий і голосовий діалог з медичними safety-обмеженнями та fallback без ключа Grok."],
         ["Telegram Mini App", "Перевірка initData через HMAC, створення сесії і підтримка WebApp SDK."],
         ["WayForPay subscriptions", "Плани підписки, checkout через WayForPay, callback-активація та Telegram-нотифікації."],
         ["i18n", "Українська за замовчуванням, також російська, польська й англійська."],
@@ -185,7 +185,7 @@ export const dictionaries = {
       featureLead: "Логика работает локально в demo/mock режиме и готова к подключению реальных API-ключей.",
       features: [
         ["CGM stream", "SSE-поток каждые несколько секунд, график, тренд, риски и прогноз на 30/60/120 мин."],
-        ["AI doctor", "Текстовый и голосовой диалог с медицинскими safety-ограничениями и fallback без ключа OpenAI."],
+        ["AI doctor", "Текстовый и голосовой диалог с медицинскими safety-ограничениями и fallback без ключа Grok."],
         ["Telegram Mini App", "Проверка initData через HMAC, создание сессии и поддержка WebApp SDK."],
         ["WayForPay subscriptions", "Планы подписки, checkout через WayForPay, callback-активация и Telegram-нотификации."],
         ["i18n", "Украинский по умолчанию, также русский, польский и английский."],
@@ -302,7 +302,7 @@ export const dictionaries = {
       featureLead: "Logika działa lokalnie w trybie demo/mock i jest gotowa na prawdziwe klucze API.",
       features: [
         ["CGM stream", "SSE co kilka sekund, wykres, trend, ryzyka i prognoza 30/60/120 min."],
-        ["AI doctor", "Dialog tekstowy i głosowy z ograniczeniami bezpieczeństwa medycznego i fallbackiem bez klucza OpenAI."],
+        ["AI doctor", "Dialog tekstowy i głosowy z ograniczeniami bezpieczeństwa medycznego i fallbackiem bez klucza Grok."],
         ["Telegram Mini App", "Walidacja initData przez HMAC, sesja i obsługa WebApp SDK."],
         ["WayForPay subscriptions", "Plany, checkout przez WayForPay, aktywacja callbackiem i powiadomienia Telegram."],
         ["i18n", "Ukraiński domyślnie, także rosyjski, polski i angielski."],

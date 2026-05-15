@@ -1,24 +1,9 @@
 import { NextResponse } from "next/server";
 import { buildMockTimeline, predictGlucose } from "@/lib/cgm";
 import { normalizeLocale } from "@/lib/i18n";
+import { callGrokChatCompletion, extractGrokText, getGrokMaxOutputTokens, getGrokModel, hasGrokApiKey } from "@/lib/grok";
 
 export const runtime = "nodejs";
-
-const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
-
-function extractOutputText(payload: any): string {
-  if (typeof payload.output_text === "string") return payload.output_text;
-
-  const parts: string[] = [];
-  for (const item of payload.output || []) {
-    for (const content of item.content || []) {
-      if (typeof content.text === "string") parts.push(content.text);
-      if (typeof content.output_text === "string") parts.push(content.output_text);
-    }
-  }
-
-  return parts.join("\n").trim();
-}
 
 function fallbackVoiceDoctorAnswer(message: string, locale: string) {
   const readings = buildMockTimeline(180, 5);
@@ -56,57 +41,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Message is empty" }, { status: 400 });
     }
 
-    if (!process.env.OPENAI_API_KEY) {
+    if (!hasGrokApiKey()) {
       return NextResponse.json({ text: fallbackVoiceDoctorAnswer(message, locale), model: "local-safe-mock" });
     }
 
     const readings = buildMockTimeline(180, 5);
-    const prediction = predictGlucose(readings, { engine: "openai-ready" });
+    const prediction = predictGlucose(readings, { engine: "grok-ready" });
 
-    const response = await fetch(OPENAI_RESPONSES_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || "gpt-4.1-mini",
-        input: [
-          {
-            role: "system",
-            content: [
-              {
-                type: "input_text",
-                text:
-                  "You are an AI Diabetes Voice Doctor widget for a CGM SaaS product. " +
-                  "Answer in the user locale, be concise and practical, do not diagnose, prescribe, calculate insulin doses, or replace a clinician. " +
-                  "If symptoms or CGM readings are dangerous, recommend urgent professional care."
-              }
-            ]
-          },
-          {
-            role: "user",
-            content: [
-              {
-                type: "input_text",
-                text: JSON.stringify({ locale, message, cgmPrediction: prediction, history: body.history || [] })
-              }
-            ]
-          }
-        ],
-        store: false,
-        max_output_tokens: 700
-      }),
-      cache: "no-store"
+    const model = getGrokModel();
+    const { response, payload, raw } = await callGrokChatCompletion({
+      model,
+      maxTokens: getGrokMaxOutputTokens(700),
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are an AI Diabetes Voice Doctor widget for a CGM SaaS product. " +
+            "Answer in the user locale, be concise and practical, do not diagnose, prescribe, calculate insulin doses, or replace a clinician. " +
+            "If symptoms or CGM readings are dangerous, recommend urgent professional care."
+        },
+        {
+          role: "user",
+          content: JSON.stringify({ locale, message, cgmPrediction: prediction, history: body.history || [] })
+        }
+      ]
     });
-
-    const raw = await response.text();
-    let payload: any;
-    try {
-      payload = JSON.parse(raw);
-    } catch {
-      payload = { raw };
-    }
 
     if (!response.ok) {
       return NextResponse.json({
@@ -116,7 +75,7 @@ export async function POST(request: Request) {
       });
     }
 
-    return NextResponse.json({ text: extractOutputText(payload), model: process.env.OPENAI_MODEL || "gpt-4.1-mini" });
+    return NextResponse.json({ text: extractGrokText(payload), model });
   } catch (error) {
     const message = error instanceof Error ? error.message : "AI voice doctor error";
     return NextResponse.json({ error: message }, { status: 500 });

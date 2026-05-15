@@ -23,7 +23,7 @@ export type PredictionPoint = {
 };
 
 export type CgmPrediction = {
-  engine: "mock" | "openai-ready" | "openai";
+  engine: "mock" | "grok-ready" | "grok";
   generatedAt: string;
   current: CgmReading;
   timeInRangePercentage: number;

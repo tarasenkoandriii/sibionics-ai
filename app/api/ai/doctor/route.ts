@@ -1,22 +1,10 @@
 import { NextResponse } from "next/server";
 import { buildMockTimeline, predictGlucose } from "@/lib/cgm";
 import { normalizeLocale } from "@/lib/i18n";
+import { callGrokChatCompletion, extractGrokText, getGrokMaxOutputTokens, getGrokModel, hasGrokApiKey } from "@/lib/grok";
 
 export const runtime = "nodejs";
 
-const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
-
-function extractOutputText(payload: any): string {
-  if (typeof payload.output_text === "string") return payload.output_text;
-  const parts: string[] = [];
-  for (const item of payload.output || []) {
-    for (const content of item.content || []) {
-      if (typeof content.text === "string") parts.push(content.text);
-      if (typeof content.output_text === "string") parts.push(content.output_text);
-    }
-  }
-  return parts.join("\n");
-}
 
 function fallbackAnswer(message: string, locale: string) {
   const readings = buildMockTimeline(180, 5);
@@ -53,62 +41,36 @@ export async function POST(request: Request) {
     }
 
     const readings = buildMockTimeline(180, 5);
-    const prediction = predictGlucose(readings, { engine: "openai-ready" });
+    const prediction = predictGlucose(readings, { engine: "grok-ready" });
 
-    if (!process.env.OPENAI_API_KEY) {
+    if (!hasGrokApiKey()) {
       return NextResponse.json({ answer: fallbackAnswer(message, locale), model: "local-safe-mock", prediction });
     }
 
-    const response = await fetch(OPENAI_RESPONSES_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || "gpt-4.1-mini",
-        input: [
-          {
-            role: "system",
-            content: [
-              {
-                type: "input_text",
-                text:
-                  "You are an AI diabetes education assistant inside a CGM SaaS dashboard. " +
-                  "Be helpful, concise, cautious, and localized. Do not diagnose, prescribe, dose insulin, or replace a clinician. " +
-                  "For urgent low/high glucose symptoms, advise urgent professional care."
-              }
-            ]
-          },
-          {
-            role: "user",
-            content: [
-              {
-                type: "input_text",
-                text: JSON.stringify({ locale, message, cgmPrediction: prediction })
-              }
-            ]
-          }
-        ],
-        store: false,
-        max_output_tokens: 900
-      }),
-      cache: "no-store"
+    const model = getGrokModel();
+    const { response, payload, raw } = await callGrokChatCompletion({
+      model,
+      maxTokens: getGrokMaxOutputTokens(900),
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are an AI diabetes education assistant inside a CGM SaaS dashboard. " +
+            "Be helpful, concise, cautious, and localized. Do not diagnose, prescribe, dose insulin, or replace a clinician. " +
+            "For urgent low/high glucose symptoms, advise urgent professional care."
+        },
+        {
+          role: "user",
+          content: JSON.stringify({ locale, message, cgmPrediction: prediction })
+        }
+      ]
     });
-
-    const raw = await response.text();
-    let payload: any;
-    try {
-      payload = JSON.parse(raw);
-    } catch {
-      payload = { raw };
-    }
 
     if (!response.ok) {
       return NextResponse.json({ answer: fallbackAnswer(message, locale), model: "local-safe-mock", warning: payload.error?.message || raw, prediction });
     }
 
-    return NextResponse.json({ answer: extractOutputText(payload), model: process.env.OPENAI_MODEL || "gpt-4.1-mini", prediction });
+    return NextResponse.json({ answer: extractGrokText(payload), model, prediction });
   } catch (error) {
     const message = error instanceof Error ? error.message : "AI doctor error";
     return NextResponse.json({ error: message }, { status: 500 });

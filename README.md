@@ -6,8 +6,8 @@ The project now contains:
 
 - realtime CGM glucose stream through Server-Sent Events (`/api/cgm/stream`);
 - dashboard with live glucose, chart, trend, Time in Range and 30/60/120 minute prediction;
-- mock + AI-ready CGM prediction engine (`lib/cgm.ts`, `/api/cgm/predict`);
-- AI voice doctor with text input, browser speech recognition, browser TTS fallback, and optional OpenAI TTS;
+- mock + Grok-ready CGM prediction engine (`lib/cgm.ts`, `/api/cgm/predict`);
+- AI voice doctor with text input, browser speech recognition, browser TTS fallback, and Grok chat responses;
 - onboarding wizard with file-based profile storage;
 - Telegram Mini App login with backend HMAC validation of `initData`;
 - multi-language UI: Ukrainian default, Russian, Polish and English;
@@ -26,6 +26,7 @@ The project now contains:
 /ua/onboarding        -> onboarding wizard
 /ua/pricing           -> subscription plans + WayForPay checkout
 /order                 -> Telegram Mini App order-only page
+/install               -> Telegram Mini App installation guide + sensor photo check
 /ua/mini-app          -> redirects to /order
 /ru, /pl, /en         -> same structure in other languages
 ```
@@ -35,9 +36,9 @@ The project now contains:
 ```txt
 /api/cgm/latest                  GET  mock timeline + prediction
 /api/cgm/stream                  GET  realtime SSE glucose stream
-/api/cgm/predict                 POST mock prediction, optional OpenAI refinement
+/api/cgm/predict                 POST mock prediction, optional Grok refinement
 /api/ai/doctor                   POST AI doctor response, local fallback without key
-/api/ai/voice/speech             POST OpenAI TTS audio, browser fallback on client
+/api/ai/voice/speech             POST disabled in Grok mode, browser fallback on client
 /api/ai/analyze                  POST existing 4-mode photo AI analysis
 /api/auth/telegram/miniapp       POST Telegram Mini App initData validation
 /api/subscriptions/create        POST create free or paid subscription checkout
@@ -73,17 +74,18 @@ AUTH_SESSION_SECRET=replace-with-long-random-value
 ORDER_ADMIN_TOKEN=replace-with-admin-token
 ```
 
-For OpenAI AI doctor, image analysis and voice:
+For Grok AI doctor, image analysis and CGM refinement:
 
 ```bash
-OPENAI_API_KEY=
-OPENAI_MODEL=gpt-4.1-mini
-OPENAI_TTS_MODEL=gpt-4o-mini-tts
-OPENAI_TTS_VOICE=marin
+XAI_API_KEY=
+GROK_API_BASE_URL=https://api.x.ai/v1
+GROK_MODEL=grok-4
+GROK_VISION_MODEL=grok-4
+GROK_MAX_OUTPUT_TOKENS=700
 CGM_AI_PREDICTION=false
 ```
 
-Set `CGM_AI_PREDICTION=true` only when you want `/api/cgm/predict` to ask OpenAI to refine the mock prediction text.
+Set `CGM_AI_PREDICTION=true` only when you want `/api/cgm/predict` to ask Grok to refine the mock prediction text.
 
 For WayForPay:
 
@@ -282,12 +284,69 @@ The order form also stores Telegram preferences: notify about order updates and 
 For the Telegram Mini App sensor installation photo check and other `/api/ai/analyze` modes:
 
 ```env
-OPENAI_API_KEY=sk-...
-OPENAI_MODEL=gpt-5.4-mini
+XAI_API_KEY=xai-...
+GROK_API_BASE_URL=https://api.x.ai/v1
+GROK_MODEL=grok-4
+GROK_VISION_MODEL=grok-4
 AI_ANALYSIS_MOCK=false
 AI_ANALYSIS_MAX_IMAGE_MB=1
 AI_ANALYSIS_MAX_OUTPUT_TOKENS=500
 ```
 
-Use `AI_ANALYSIS_MOCK=true` for local/demo testing without an OpenAI API key.
+Use `AI_ANALYSIS_MOCK=true` for local/demo testing without a Grok/xAI API key.
 
+Smoke test the same backend used by Telegram Mini App `/install`:
+
+```bash
+npm run dev
+# in another terminal
+npm run test:grok:sensor-install
+```
+
+The test sends `scripts/fixtures/sensor-installation-quality-test.jpg` to:
+
+```txt
+POST /api/ai/analyze
+mode=sensor_tape
+```
+
+Optional test overrides:
+
+```env
+AI_ANALYSIS_TEST_BASE_URL=http://localhost:3000
+AI_ANALYSIS_TEST_IMAGE=scripts/fixtures/sensor-installation-quality-test.jpg
+```
+
+
+If `/api/ai/analyze` returns `Model not found`, first list models available to your key:
+
+```bash
+npm run test:grok:models
+```
+
+Then set `GROK_VISION_MODEL` to one of the returned chat model ids that accepts image input. Start with `grok-4` if it is available for your key. You can also set a comma-separated fallback list:
+
+```env
+GROK_VISION_MODEL=your-primary-vision-model
+GROK_VISION_MODEL_CANDIDATES=
+```
+
+The backend will try `GROK_VISION_MODEL`, then `GROK_VISION_MODEL_CANDIDATES`, then auto-discovered direct xAI chat models when the error is model-related.
+
+
+### Grok image analysis model notes
+
+For `/api/ai/analyze` and the Telegram Mini App `/install`, use a direct xAI chat model id. Do not use OpenRouter-style ids such as `grok/compound-mini`, and do not use image-generation-only ids such as `grok-imagine-image-pro`.
+
+Recommended default:
+
+```env
+GROK_VISION_MODEL=grok-4
+GROK_AUTO_DISCOVER_MODELS=true
+```
+
+To inspect models available to your key:
+
+```bash
+npm run test:grok:models
+```
