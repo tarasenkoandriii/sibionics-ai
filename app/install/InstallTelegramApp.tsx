@@ -2,20 +2,18 @@
 
 import { useEffect } from "react";
 
-declare global {
-  interface Window {
-    Telegram?: {
-      WebApp?: {
-        ready?: () => void;
-        expand?: () => void;
-      };
-    };
-  }
+type TelegramInstallWebApp = {
+  ready?: () => void;
+  expand?: () => void;
+};
+
+function getTelegramWebApp(): TelegramInstallWebApp | undefined {
+  return (window as typeof window & { Telegram?: { WebApp?: TelegramInstallWebApp } }).Telegram?.WebApp;
 }
 
 export default function InstallTelegramApp() {
   useEffect(() => {
-    const webApp = window.Telegram?.WebApp;
+    const webApp = getTelegramWebApp();
     webApp?.ready?.();
     webApp?.expand?.();
   }, []);
