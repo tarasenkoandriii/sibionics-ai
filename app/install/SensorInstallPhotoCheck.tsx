@@ -11,6 +11,16 @@ type AnalysisResult = {
   medical_disclaimer?: string;
 };
 
+type AiAnalyzeResponse = {
+  result?: AnalysisResult;
+  error?: string;
+  userMessage?: string;
+  code?: string;
+  warning?: string;
+  fallback?: string;
+  mock?: boolean;
+};
+
 type CheckStatus = "idle" | "capturing" | "analyzing" | "done" | "error";
 
 const TEXT = {
@@ -28,6 +38,8 @@ const TEXT = {
   disclaimer:
     "AI-аналіз по фото не є медичною діагностикою. Він оцінює тільки видимі ознаки установки сенсора та фіксації тейпа.",
   genericError: "Не вдалося виконати AI-перевірку. Спробуйте зробити чіткіше фото або повторіть пізніше.",
+  temporaryUnavailable: "AI-перевірка тимчасово перевантажена. Повторіть спробу за кілька хвилин.",
+  fallbackNotice: "Grok тимчасово перевантажений, тому показано безпечну fallback-перевірку. Для точної оцінки повторіть аналіз пізніше.",
 };
 
 function getConfidenceLabel(confidence?: string) {
@@ -57,16 +69,19 @@ export default function SensorInstallPhotoCheck() {
   const [status, setStatus] = useState<CheckStatus>("idle");
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
 
   const openCamera = () => {
     setStatus("capturing");
     setError(null);
+    setWarning(null);
     inputRef.current?.click();
   };
 
   const analyzePhoto = async (file: File) => {
     setStatus("analyzing");
     setError(null);
+    setWarning(null);
     setResult(null);
 
     const formData = new FormData();
@@ -78,10 +93,19 @@ export default function SensorInstallPhotoCheck() {
         method: "POST",
         body: formData,
       });
-      const payload = await response.json().catch(() => ({}));
+      const payload = (await response.json().catch(() => ({}))) as AiAnalyzeResponse;
 
       if (!response.ok) {
-        throw new Error(payload?.error || TEXT.genericError);
+        const message =
+          payload?.code === "AI_TEMPORARILY_UNAVAILABLE"
+            ? payload.userMessage || TEXT.temporaryUnavailable
+            : payload?.userMessage || payload?.error || TEXT.genericError;
+
+        throw new Error(message);
+      }
+
+      if (payload?.code === "AI_TEMPORARILY_UNAVAILABLE" || payload?.fallback === "grok_capacity") {
+        setWarning(payload.warning || TEXT.fallbackNotice);
       }
 
       setResult(payload.result || null);
@@ -173,6 +197,8 @@ export default function SensorInstallPhotoCheck() {
 
           {status === "done" && result && (
             <div className="install-photo-result-content">
+              {warning && <p className="install-photo-warning">{warning}</p>}
+
               <section>
                 <h3>{TEXT.summary}</h3>
                 <p>{result.summary || "AI не зміг сформувати короткий висновок по фото."}</p>

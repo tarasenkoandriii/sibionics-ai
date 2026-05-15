@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { AI_MODES, type AiModeId } from "@/lib/product";
 import { analysisSchema, getAnalysisPrompt } from "@/lib/ai-prompts";
-import { callGrokChatCompletion, extractGrokModelIds, getGrokVisionModels, isGrokRetryableModelError, listGrokModels, mergeGrokModelCandidates, parseJsonFromText, readBooleanEnv, readPositiveIntegerEnv, readPositiveNumberEnv } from "@/lib/grok";
+import { callGrokChatCompletion, extractGrokErrorMessage, extractGrokModelIds, getGrokVisionModels, isGrokRetryableModelError, isGrokTemporaryProviderError, listGrokModels, mergeGrokModelCandidates, parseJsonFromText, readBooleanEnv, readPositiveIntegerEnv, readPositiveNumberEnv } from "@/lib/grok";
 
 const allowedModes = new Set<string>(AI_MODES.map((mode) => mode.id));
 const DEFAULT_MAX_IMAGE_MB = 1;
 const DEFAULT_MAX_OUTPUT_TOKENS = 500;
 const DEFAULT_AUTO_DISCOVER_GROK_MODELS = true;
+const DEFAULT_FALLBACK_ON_GROK_CAPACITY = true;
 
 function getMaxImageMb() {
   return readPositiveNumberEnv("AI_ANALYSIS_MAX_IMAGE_MB", DEFAULT_MAX_IMAGE_MB);
@@ -26,6 +27,10 @@ function isMockAnalysisEnabled() {
 
 function isGrokModelAutoDiscoveryEnabled() {
   return readBooleanEnv("GROK_AUTO_DISCOVER_MODELS", DEFAULT_AUTO_DISCOVER_GROK_MODELS);
+}
+
+function shouldFallbackOnGrokCapacity() {
+  return readBooleanEnv("AI_ANALYSIS_FALLBACK_ON_GROK_CAPACITY", DEFAULT_FALLBACK_ON_GROK_CAPACITY);
 }
 
 function getMockAnalysis(mode: AiModeId) {
@@ -59,6 +64,41 @@ function getMockAnalysis(mode: AiModeId) {
         confidence: "low",
         medical_disclaimer: "Це тестовий результат, не медична діагностика."
       };
+}
+
+function getTemporaryUnavailableAnalysis(mode: AiModeId) {
+  const base = getMockAnalysis(mode);
+
+  if (mode === "sensor_tape") {
+    return {
+      ...base,
+      summary: "AI-перевірка тимчасово недоступна через високе навантаження на Grok. Це fallback-результат: перевірте, чи сенсор щільно прилягає до шкіри, чи тейп не має складок і чи краї не відклеюються.",
+      insights: [
+        "Grok зараз перевантажений, тому реальний аналіз фото не завершився.",
+        "Фото було прийнято backend endpoint-ом /api/ai/analyze.",
+        "Для точної оцінки повторіть перевірку за кілька хвилин."
+      ],
+      possible_risks: [
+        "Без реального AI-аналізу неможливо підтвердити перекіс сенсора, відклеювання тейпа або подразнення шкіри.",
+        "Якщо є біль, кров, виражене почервоніння або нестабільні показання, не покладайтеся на fallback-результат."
+      ],
+      recommended_next_steps: [
+        "Повторіть фото-перевірку через кілька хвилин.",
+        "Візуально перевірте, чи немає зазору між сенсором і шкірою.",
+        "Перевірте краї тейпа; за потреби додайте прозору фіксацію.",
+        "При болю, сильному подразненні або сумнівах зверніться до лікаря."
+      ],
+      confidence: "low",
+      medical_disclaimer: "Fallback-результат не є медичною діагностикою і не є повноцінним AI-аналізом фото."
+    };
+  }
+
+  return {
+    ...base,
+    summary: "AI-перевірка тимчасово недоступна через високе навантаження на Grok. Повторіть спробу за кілька хвилин.",
+    confidence: "low",
+    medical_disclaimer: "Fallback-результат не є медичною діагностикою."
+  };
 }
 
 export async function POST(request: Request) {
@@ -141,8 +181,9 @@ ${JSON.stringify(analysisSchema)}`;
     }
 
     const maxOutputTokens = getMaxOutputTokens();
-    const attemptedModels: Array<{ model: string; status: number; error?: string }> = [];
+    const attemptedModels: Array<{ model: string; status: number; error?: string; temporaryUnavailable?: boolean }> = [];
     let lastPayload: any = null;
+    let hasTemporaryProviderError = false;
 
     for (const model of models) {
       const { response: grokResponse, payload } = await callGrokChatCompletion({
@@ -178,18 +219,61 @@ ${JSON.stringify(analysisSchema)}`;
         });
       }
 
-      const error = payload?.error?.message || payload?.error || "Grok analysis failed";
-      attemptedModels.push({ model, status: grokResponse.status, error: String(error) });
+      const error = extractGrokErrorMessage(payload) || "Grok analysis failed";
+      const temporaryUnavailable = isGrokTemporaryProviderError(payload, grokResponse.status);
+      if (temporaryUnavailable) hasTemporaryProviderError = true;
+
+      attemptedModels.push({
+        model,
+        status: grokResponse.status,
+        error: String(error),
+        ...(temporaryUnavailable ? { temporaryUnavailable: true } : {})
+      });
       lastPayload = payload;
 
-      if (!isGrokRetryableModelError(payload)) {
+      if (!isGrokRetryableModelError(payload) && !temporaryUnavailable) {
         break;
       }
     }
 
+    if (hasTemporaryProviderError) {
+      const message = "AI-перевірка тимчасово недоступна через високе навантаження. Повторіть спробу за кілька хвилин.";
+
+      if (shouldFallbackOnGrokCapacity()) {
+        return NextResponse.json({
+          result: getTemporaryUnavailableAnalysis(mode),
+          mode,
+          model: attemptedModels.at(-1)?.model || models[0],
+          attemptedModels,
+          modelDiscovery,
+          mock: true,
+          fallback: "grok_capacity",
+          warning: message,
+          code: "AI_TEMPORARILY_UNAVAILABLE",
+          limits: {
+            maxImageMb,
+            maxOutputTokens
+          }
+        });
+      }
+
+      return NextResponse.json(
+        {
+          error: message,
+          userMessage: message,
+          code: "AI_TEMPORARILY_UNAVAILABLE",
+          details: lastPayload,
+          model: attemptedModels.at(-1)?.model || models[0],
+          attemptedModels,
+          modelDiscovery
+        },
+        { status: 503 }
+      );
+    }
+
     return NextResponse.json(
       {
-        error: lastPayload?.error?.message || lastPayload?.error || "Grok analysis failed",
+        error: extractGrokErrorMessage(lastPayload) || "Grok analysis failed",
         details: lastPayload,
         model: attemptedModels.at(-1)?.model || models[0],
         attemptedModels,

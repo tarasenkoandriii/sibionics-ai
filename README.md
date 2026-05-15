@@ -291,6 +291,7 @@ GROK_VISION_MODEL=grok-4
 AI_ANALYSIS_MOCK=false
 AI_ANALYSIS_MAX_IMAGE_MB=1
 AI_ANALYSIS_MAX_OUTPUT_TOKENS=500
+AI_ANALYSIS_FALLBACK_ON_GROK_CAPACITY=true
 ```
 
 Use `AI_ANALYSIS_MOCK=true` for local/demo testing without a Grok/xAI API key.
@@ -350,3 +351,14 @@ To inspect models available to your key:
 ```bash
 npm run test:grok:models
 ```
+
+
+### Grok capacity fallback
+
+If production returns `The model is currently at capacity due to high demand`, keep this enabled:
+
+```env
+AI_ANALYSIS_FALLBACK_ON_GROK_CAPACITY=true
+```
+
+Then `/api/ai/analyze` returns a safe fallback result with `code=AI_TEMPORARILY_UNAVAILABLE` and `fallback=grok_capacity` instead of showing the raw xAI provider error in the Telegram Mini App. Set it to `false` only if you prefer HTTP 503 and a retry-only UX.

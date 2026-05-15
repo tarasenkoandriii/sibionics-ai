@@ -2440,3 +2440,12 @@ h3 {
 .telegram-install-main {
   padding-bottom: 96px;
 }
+
+.install-photo-warning {
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(255, 193, 7, 0.14);
+  color: #6f4d00;
+  font-size: 14px;
+  line-height: 1.45;
+}

@@ -147,6 +147,44 @@ export function isGrokRetryableModelError(payload: any) {
   );
 }
 
+
+export function extractGrokErrorMessage(payload: any) {
+  return String(
+    payload?.error?.message ||
+      payload?.error ||
+      payload?.message ||
+      payload?.raw ||
+      ""
+  );
+}
+
+export function isGrokCapacityError(payload: any) {
+  const message = extractGrokErrorMessage(payload).toLowerCase();
+  const code = String(payload?.code || payload?.error?.code || "").toLowerCase();
+
+  return (
+    message.includes("currently at capacity") ||
+    message.includes("high demand") ||
+    message.includes("provisioned throughput") ||
+    message.includes("capacity") ||
+    message.includes("overloaded") ||
+    code.includes("capacity") ||
+    code.includes("overloaded")
+  );
+}
+
+export function isGrokTemporaryProviderError(payload: any, status?: number) {
+  const message = extractGrokErrorMessage(payload).toLowerCase();
+  return (
+    isGrokCapacityError(payload) ||
+    status === 429 ||
+    status === 503 ||
+    message.includes("temporarily unavailable") ||
+    message.includes("try again") ||
+    message.includes("rate limit")
+  );
+}
+
 export function getGrokMaxOutputTokens(fallback = 700) {
   return readPositiveIntegerEnv("GROK_MAX_OUTPUT_TOKENS", fallback);
 }
