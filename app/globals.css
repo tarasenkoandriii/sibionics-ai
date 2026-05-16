@@ -2851,3 +2851,117 @@ h3 {
     justify-content: center;
   }
 }
+
+/* Insulin mini app custom dose steppers */
+.insulin-dose-summary-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.insulin-dose-summary-grid .insulin-dose-field {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  text-align: center;
+}
+
+.insulin-dose-stepper {
+  display: grid;
+  grid-template-columns: 58px minmax(82px, 1fr) 58px;
+  min-height: 58px;
+  overflow: hidden;
+  border: 1px solid rgba(100, 116, 139, 0.28);
+  border-radius: 0;
+  background: #ffffff;
+}
+
+.insulin-dose-stepper-button,
+.insulin-dose-stepper input {
+  min-width: 0;
+  border: 0;
+  border-right: 1px solid rgba(100, 116, 139, 0.28);
+  background: #ffffff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1;
+  text-align: center;
+}
+
+.insulin-dose-stepper-button:last-child {
+  border-right: 0;
+}
+
+.insulin-dose-stepper-button {
+  cursor: pointer;
+}
+
+.insulin-dose-stepper-button:active {
+  background: rgba(8, 183, 179, 0.08);
+}
+
+.insulin-dose-stepper input {
+  width: 100%;
+  padding: 0 8px;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.insulin-dose-stepper input::-webkit-outer-spin-button,
+.insulin-dose-stepper input::-webkit-inner-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+.insulin-dose-stepper input:focus,
+.insulin-dose-stepper-button:focus-visible,
+.insulin-dose-stepper-actions button:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 3px solid rgba(8, 183, 179, 0.18);
+  outline-offset: -3px;
+}
+
+.meals-inline-summary-grid .insulin-dose-stepper-actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #e11d48;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.meals-inline-summary-grid .insulin-dose-stepper-actions button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+}
+
+.insulin-dose-label {
+  display: block;
+  color: #2563eb;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+@media (max-width: 520px) {
+  .insulin-dose-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}

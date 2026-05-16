@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useRef, useState } from "react";
+import { ChangeEvent, Dispatch, KeyboardEvent, SetStateAction, useRef, useState } from "react";
 
 type InsulinItem = {
   name?: string;
@@ -114,12 +114,150 @@ function getInsulinTitle(result: InsulinAnalysisResult | null, fallbackIndex: nu
   return summary?.detected_type_label ? `${summary.detected_type_label}${dose}` : `Інсулін ${fallbackIndex}`;
 }
 
+function parseDoseUnits(value?: string) {
+  if (!value) return 0;
+
+  const normalized = value.replace(",", ".");
+  const match = normalized.match(/\d+(?:\.\d+)?/);
+  if (!match) return 0;
+
+  const parsed = Number(match[0]);
+  return Number.isFinite(parsed) ? Math.max(0, Math.round(parsed)) : 0;
+}
+
+
+function normalizeDoseInputValue(value: string) {
+  if (value.trim() === "") return 0;
+
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? Math.max(0, Math.round(parsed)) : 0;
+}
+
+function clampDoseValue(value: number) {
+  return Number.isFinite(value) ? Math.max(0, Math.round(value)) : 0;
+}
+
+function updateDoseWithKeyboard(
+  event: KeyboardEvent<HTMLInputElement>,
+  currentValue: number,
+  setValue: (value: number) => void
+) {
+  if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+
+  event.preventDefault();
+
+  const direction = event.key === "ArrowUp" ? 1 : -1;
+  setValue(Math.max(0, currentValue + direction));
+}
+
+function normalizeInsulinType(value?: string) {
+  const normalized = (value || "").toLowerCase();
+
+  if (/(slow|long|basal|background|повіль|медлен|длитель|довг|пролонг|базал|тресиба|лантус|левемір|левемир|тужео)/.test(normalized)) {
+    return "slow";
+  }
+
+  if (/(fast|rapid|short|bolus|meal|швид|быстр|коротк|ультра|новорапід|новорапид|хумалог|апідра|апидра|фіасп|фиасп)/.test(normalized)) {
+    return "fast";
+  }
+
+  if (/(mixed|both|mix|обидва|оба|змішан|смешан)/.test(normalized)) {
+    return "mixed";
+  }
+
+  return "unknown";
+}
+
+function getDoseUnitsByType(result: InsulinAnalysisResult | null) {
+  const summary = result?.insulin_summary;
+  const summaryType = normalizeInsulinType(`${summary?.detected_type || ""} ${summary?.detected_type_label || ""}`);
+  const totalDose = parseDoseUnits(summary?.visible_total_dose_units);
+
+  const items = Array.isArray(result?.insulin_items) ? result?.insulin_items ?? [] : [];
+  const itemTotals = items.reduce(
+    (totals, item) => {
+      const dose = parseDoseUnits(item.visible_dose_units);
+      if (!dose) return totals;
+
+      const itemType = normalizeInsulinType(`${item.type || ""} ${item.type_label || ""} ${item.name || ""}`);
+      if (itemType === "slow") totals.slow += dose;
+      if (itemType === "fast") totals.fast += dose;
+
+      return totals;
+    },
+    { slow: 0, fast: 0 }
+  );
+
+  if (itemTotals.slow || itemTotals.fast) {
+    return { ...itemTotals, detected: true };
+  }
+
+  if (summaryType === "slow" && totalDose) return { slow: totalDose, fast: 0, detected: true };
+  if (summaryType === "fast" && totalDose) return { slow: 0, fast: totalDose, detected: true };
+
+  return { slow: 0, fast: 0, detected: false };
+}
+
+type DoseStepperProps = {
+  value: number;
+  setValue: Dispatch<SetStateAction<number>>;
+  label: string;
+  onSave: () => void;
+};
+
+function DoseStepper({ value, setValue, label, onSave }: DoseStepperProps) {
+  const decrement = () => setValue((current) => clampDoseValue(current - 1));
+  const increment = () => setValue((current) => clampDoseValue(current + 1));
+  const clear = () => setValue(0);
+
+  return (
+    <div className="insulin-dose-field">
+      <span className="insulin-dose-label">{label}</span>
+      <div className="insulin-dose-stepper" role="group" aria-label={label}>
+        <button
+          type="button"
+          className="insulin-dose-stepper-button"
+          onClick={decrement}
+          aria-label={`Зменшити ${label}`}
+        >
+          −
+        </button>
+        <input
+          type="number"
+          min="0"
+          step="1"
+          inputMode="numeric"
+          value={value}
+          onChange={(event) => setValue(normalizeDoseInputValue(event.target.value))}
+          onKeyDown={(event) => updateDoseWithKeyboard(event, value, (nextValue) => setValue(nextValue))}
+          aria-label={label}
+        />
+        <button
+          type="button"
+          className="insulin-dose-stepper-button"
+          onClick={increment}
+          aria-label={`Збільшити ${label}`}
+        >
+          +
+        </button>
+      </div>
+      <div className="insulin-dose-stepper-actions">
+        <button type="button" onClick={clear}>Clear</button>
+        <span aria-hidden="true">|</span>
+        <button type="button" onClick={onSave}>Save</button>
+      </div>
+    </div>
+  );
+}
+
 export default function InsulinMiniApp() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
   const [entries, setEntries] = useState<InsulinEntry[]>([]);
+  const [slowUnits, setSlowUnits] = useState(0);
+  const [fastUnits, setFastUnits] = useState(0);
 
   const openCamera = () => {
     setStatus("capturing");
@@ -153,6 +291,13 @@ export default function InsulinMiniApp() {
       const apiWarning = payload?.code === "AI_TEMPORARILY_UNAVAILABLE" || payload?.fallback === "grok_capacity"
         ? payload.warning || "Grok тимчасово перевантажений, тому показано fallback-відповідь. Для точного розпізнавання повторіть аналіз пізніше."
         : null;
+
+      const detectedUnits = getDoseUnitsByType(apiResult);
+
+      if (detectedUnits.detected) {
+        setSlowUnits(detectedUnits.slow);
+        setFastUnits(detectedUnits.fast);
+      }
 
       const entry: InsulinEntry = {
         id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
@@ -231,14 +376,14 @@ export default function InsulinMiniApp() {
 
       <section className="meals-mini-app-card meals-inline-add-section">
         <div>
-          <h2>Додати інсулін</h2>
+          <h2>Розпізнати інсулін</h2>
           <p>
             Натисніть кнопку з фотоапаратом справа вгорі сторінки або кнопку нижче. Grok AI спробує визначити,
             чи це швидкий, повільний, змішаний інсулін або обидва типи на фото, а також видиму дозу, якщо її можна прочитати.
           </p>
         </div>
         <button type="button" className="btn btn-primary meals-mini-app-add-button" onClick={openCamera} disabled={status === "analyzing"}>
-          📷 Додати інсулін
+          📷 Розпізнати інсулін
         </button>
       </section>
 
@@ -261,27 +406,8 @@ export default function InsulinMiniApp() {
 
       {warning && <section className="meals-mini-app-card meals-inline-warning">{warning}</section>}
 
-      <section className="meals-mini-app-card meals-inline-summary">
-        <h2>Підсумок сторінки</h2>
-        <div className="meals-inline-summary-grid">
-          <div>
-            <strong>{entries.length}</strong>
-            <span>записів інсуліну</span>
-          </div>
-          <div>
-            <strong>{entries.filter((entry) => entry.result?.insulin_summary?.detected_type === "fast").length}</strong>
-            <span>швидких</span>
-          </div>
-          <div>
-            <strong>{entries.filter((entry) => entry.result?.insulin_summary?.detected_type === "slow").length}</strong>
-            <span>повільних</span>
-          </div>
-        </div>
-        <p className="muted">Підсумок базується на відповідях AI та не є медичною рекомендацією або розрахунком дози.</p>
-      </section>
-
       <section className="meals-mini-app-card meals-inline-list-section">
-        <h2>Історія на цій сторінці</h2>
+        <h2>Результат распознавания AI</h2>
         {!entries.length && (
           <div className="meals-inline-empty">
             <p>Поки що немає доданих записів інсуліну.</p>
@@ -303,15 +429,12 @@ export default function InsulinMiniApp() {
               {entry.expanded && (
                 <div className="meals-inline-entry-body">
                   {entry.warning && <div className="meals-inline-warning">{entry.warning}</div>}
-                  <label>
-                    <span>Редагований результат API</span>
-                    <textarea
-                      value={entry.editableText}
-                      onChange={(event) => updateEntryText(entry.id, event.target.value)}
-                      rows={16}
-                      aria-label="Редагований результат API"
-                    />
-                  </label>
+                  <textarea
+                    value={entry.editableText}
+                    onChange={(event) => updateEntryText(entry.id, event.target.value)}
+                    rows={16}
+                    aria-label="Результат распознавания AI"
+                  />
                   <div className="meals-inline-entry-actions">
                     <button type="button" className="btn btn-secondary" onClick={() => toggleEntry(entry.id)}>
                       Згорнути
@@ -325,6 +448,33 @@ export default function InsulinMiniApp() {
             </article>
           ))}
         </div>
+      </section>
+
+      <section className="meals-mini-app-card meals-inline-summary insulin-dose-summary">
+        <h2>Доза інсуліна(-ів)</h2>
+        <p className="muted">(за потреби відредагуйте)</p>
+        <div className="meals-inline-summary-grid insulin-dose-summary-grid">
+          <DoseStepper
+            value={slowUnits}
+            setValue={setSlowUnits}
+            label="одиниць повільного"
+            onSave={() => setWarning("Дозу повільного інсуліну записано на цій сторінці. Перевірте значення перед використанням.")}
+          />
+          <DoseStepper
+            value={fastUnits}
+            setValue={setFastUnits}
+            label="одиниць швидкого"
+            onSave={() => setWarning("Дозу швидкого інсуліну записано на цій сторінці. Перевірте значення перед використанням.")}
+          />
+        </div>
+        <button
+          type="button"
+          className="btn btn-primary meals-mini-app-add-button"
+          onClick={() => setWarning("Дозу інсуліна(-ів) записано на цій сторінці. Перевірте значення перед використанням.")}
+        >
+          Записати
+        </button>
+        <p className="muted">Доза базується на відповідях AI та може бути відредагована вручну. Це не є медичною рекомендацією або розрахунком дози.</p>
       </section>
 
       <section className="meals-mini-app-card meals-inline-note">
