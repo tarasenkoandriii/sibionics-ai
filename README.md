@@ -371,7 +371,7 @@ The Telegram Mini App for meal photo recognition is available at:
 /meals
 ```
 
-It reuses the same `FoodPhotoAnalysisModal` and backend endpoint used by the website dashboard action:
+The `/meals` Telegram Mini App intentionally does not use modal/dialog overlays. It implements the full add/view/edit/delete flow inline on one mobile-first page and uses the same backend endpoint as the website dashboard action:
 
 ```txt
 POST /api/ai/analyze
