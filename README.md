@@ -362,3 +362,27 @@ AI_ANALYSIS_FALLBACK_ON_GROK_CAPACITY=true
 ```
 
 Then `/api/ai/analyze` returns a safe fallback result with `code=AI_TEMPORARILY_UNAVAILABLE` and `fallback=grok_capacity` instead of showing the raw xAI provider error in the Telegram Mini App. Set it to `false` only if you prefer HTTP 503 and a retry-only UX.
+
+## Telegram Mini App: Meals AI photo recognition
+
+The Telegram Mini App for meal photo recognition is available at:
+
+```txt
+/meals
+```
+
+It reuses the same `FoodPhotoAnalysisModal` and backend endpoint used by the website dashboard action:
+
+```txt
+POST /api/ai/analyze
+mode=food_photo
+```
+
+For every detected dish, Grok should return quantity text with an approximate weight in parentheses, for example:
+
+```txt
+1 порція (примерно 150 грамм)
+2 кусочка (примерно 120 грамм)
+```
+
+The result remains editable in the UI before the user relies on it.

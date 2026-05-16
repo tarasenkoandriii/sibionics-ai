@@ -32,6 +32,35 @@ export const analysisSchema = {
       type: "array",
       items: { type: "string" }
     },
+    meal_items: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          name: { type: "string" },
+          type: { type: "string" },
+          quantity: { type: "string" },
+          calories_kcal: { type: "number" },
+          protein_g: { type: "number" },
+          fat_g: { type: "number" },
+          carbs_g: { type: "number" },
+          confidence: { type: "string", enum: ["low", "medium", "high"] }
+        },
+        required: ["name", "type", "quantity", "calories_kcal", "protein_g", "fat_g", "carbs_g", "confidence"]
+      }
+    },
+    meal_totals: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        calories_kcal: { type: "number" },
+        protein_g: { type: "number" },
+        fat_g: { type: "number" },
+        carbs_g: { type: "number" }
+      },
+      required: ["calories_kcal", "protein_g", "fat_g", "carbs_g"]
+    },
     confidence: { type: "string", enum: ["low", "medium", "high"] },
     medical_disclaimer: { type: "string" }
   },
@@ -72,12 +101,16 @@ const modePrompts: Record<AiModeId, string> = {
 3. В следующих шагах предложи безопасные бытовые действия: держать место сухим, не тянуть сенсор, обратиться к врачу при боли/гное/распространении покраснения.
 `,
   food_photo: `
-Режим: фото еды → прогноз влияния на глюкозу.
+Режим: фото еды → распознавание блюд, количества и приблизительных калорий/макронутриентов.
 Задачи:
-1. Опиши видимую еду и оцени вероятные источники углеводов, белков, жиров и клетчатки.
-2. Дай качественный прогноз глюкозной кривой: низкое/среднее/высокое влияние, примерное время подъема и возможная длительность, но без точных медицинских обещаний.
-3. Укажи, что точная реакция индивидуальна и ее надо сверять с CGM/самочувствием.
-4. Не рассчитывай дозу инсулина и не давай назначения.
+1. Определи все видимые блюда/продукты на фото. Для каждого элемента заполни meal_items: name, type, quantity, calories_kcal, protein_g, fat_g, carbs_g, confidence.
+2. type должен быть понятной категорией: основное блюдо, гарнир, овощи, фрукт, напиток, соус, десерт, перекус или другое.
+3. quantity указывай как приблизительную порцию понятным языком и ОБЯЗАТЕЛЬНО добавляй в скобках примерный вес в граммах в формате "(примерно ... грамм)". Примеры: "1 тарелка (примерно 350 грамм)", "2 кусочка (примерно 120 грамм)", "1 стакан (примерно 250 грамм)", "1 порция (примерно 150 грамм)".
+4. calories_kcal, protein_g, fat_g, carbs_g указывай как числовую приблизительную оценку для каждого блюда. Если блюдо не видно четко, оцени осторожно и поставь низкую confidence.
+5. В meal_totals посчитай общее количество calories_kcal, protein_g, fat_g, carbs_g для всего приема пищи.
+6. В summary кратко перечисли основные блюда и общий итог калорий/углеводов.
+7. В insights добавь комментарий о вероятном влиянии на глюкозу: низкое/среднее/высокое, но без медицинских обещаний.
+8. Не рассчитывай дозу инсулина и не давай назначения. Укажи, что оценка приблизительная и ее нужно сверять с CGM/самочувствием.
 `,
   labs_photo: `
 Режим: фото анализов HbA1c и других лабораторных показателей.

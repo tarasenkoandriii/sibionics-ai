@@ -2446,3 +2446,212 @@ h3 {
   font-size: 14px;
   line-height: 1.45;
 }
+
+.food-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 160;
+  display: grid;
+  align-items: end;
+  padding: 16px;
+  background: rgba(17, 37, 43, 0.42);
+  backdrop-filter: blur(8px);
+}
+
+.food-modal-panel {
+  position: relative;
+  width: min(760px, 100%);
+  max-height: min(88svh, 780px);
+  margin: 0 auto;
+  overflow: auto;
+  padding: clamp(18px, 5vw, 28px);
+  border: 1px solid rgba(8, 183, 179, 0.18);
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 24px 80px rgba(17, 37, 43, 0.24);
+}
+
+.food-modal-camera-button {
+  position: absolute;
+  top: 16px;
+  right: 66px;
+}
+
+.food-modal-close {
+  position: absolute;
+  top: 22px;
+  right: 18px;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(8, 183, 179, 0.1);
+  color: var(--ink);
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.food-modal-copy-block {
+  display: grid;
+  gap: 10px;
+  padding: 6px 116px 18px 0;
+}
+
+.food-modal-copy-block h2 {
+  margin: 0;
+  font-size: clamp(28px, 6vw, 42px);
+  letter-spacing: -0.045em;
+}
+
+.food-modal-copy-block p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.food-modal-state {
+  margin-top: 14px;
+  padding: 16px;
+  border-radius: 22px;
+}
+
+.food-modal-loading {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  border: 1px solid rgba(8, 183, 179, 0.16);
+  background: rgba(220, 251, 250, 0.42);
+  text-align: center;
+  color: var(--muted);
+}
+
+.food-modal-error {
+  display: grid;
+  gap: 10px;
+  background: rgba(255, 236, 232, 0.9);
+  color: #84241a;
+}
+
+.food-modal-warning {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(255, 193, 7, 0.14);
+  color: #6f4d00;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.food-modal-result-editor {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.food-modal-result-editor h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.food-modal-result-editor textarea {
+  width: 100%;
+  min-height: 320px;
+  resize: vertical;
+  padding: 14px;
+  border: 1px solid rgba(8, 183, 179, 0.22);
+  border-radius: 20px;
+  background: #f8fbfb;
+  color: var(--ink);
+  font: inherit;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.food-modal-result-editor textarea:focus {
+  outline: 3px solid rgba(8, 183, 179, 0.16);
+  border-color: var(--brand);
+}
+
+@media (max-width: 640px) {
+  .food-modal-backdrop {
+    padding: 8px;
+  }
+
+  .food-modal-panel {
+    max-height: 92svh;
+    border-radius: 26px 26px 18px 18px;
+  }
+
+  .food-modal-copy-block {
+    padding-right: 96px;
+  }
+
+  .food-modal-camera-button {
+    right: 60px;
+  }
+}
+
+
+.meals-mini-app-page {
+  min-height: 100vh;
+  padding: 18px 16px 32px;
+  background: radial-gradient(circle at top right, rgba(45, 212, 191, 0.16), transparent 34%), #f6fbf9;
+}
+
+.meals-mini-app-hero,
+.meals-mini-app-card {
+  max-width: 720px;
+  margin: 0 auto 16px;
+  border: 1px solid rgba(20, 184, 166, 0.18);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 18px 52px rgba(15, 23, 42, 0.08);
+}
+
+.meals-mini-app-hero {
+  padding: 24px 20px;
+}
+
+.meals-mini-app-hero h1 {
+  margin: 10px 0 12px;
+  font-size: clamp(2rem, 9vw, 3.4rem);
+  line-height: 0.98;
+  letter-spacing: -0.06em;
+}
+
+.meals-mini-app-hero p,
+.meals-mini-app-card p,
+.meals-mini-app-card li {
+  color: #475569;
+  line-height: 1.65;
+}
+
+.meals-mini-app-add-button {
+  width: 100%;
+  margin-top: 18px;
+  justify-content: center;
+}
+
+.meals-mini-app-card {
+  padding: 20px;
+}
+
+.meals-mini-app-card h2 {
+  margin: 0 0 12px;
+}
+
+.meals-mini-app-card ol {
+  margin: 0 0 12px;
+  padding-left: 22px;
+}
+
+@media (min-width: 720px) {
+  .meals-mini-app-page {
+    padding-top: 32px;
+  }
+
+  .meals-mini-app-add-button {
+    width: auto;
+  }
+}

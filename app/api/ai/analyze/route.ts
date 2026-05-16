@@ -54,16 +54,60 @@ function getMockAnalysis(mode: AiModeId) {
     medical_disclaimer: "Mock-результат не є медичною діагностикою і не замінює консультацію лікаря."
   };
 
-  return mode === "sensor_tape"
-    ? sensorTapeResult
-    : {
-        summary: "Демо-результат AI_ANALYSIS_MOCK=true. Реальний AI-аналіз не виконувався.",
-        insights: ["Файл успішно отримано endpoint-ом AI-аналізу."],
-        possible_risks: ["Mock-режим не оцінює реальні ризики."],
-        recommended_next_steps: ["Вимкніть AI_ANALYSIS_MOCK і задайте XAI_API_KEY для реального аналізу."],
-        confidence: "low",
-        medical_disclaimer: "Це тестовий результат, не медична діагностика."
-      };
+  if (mode === "sensor_tape") return sensorTapeResult;
+
+  if (mode === "food_photo") {
+    return {
+      summary: "Демо-розпізнавання їжі: умовна тарілка з основною стравою та гарніром, приблизно 520 ккал і 58 г вуглеводів.",
+      extracted_values: [],
+      meal_items: [
+        {
+          name: "Основна страва",
+          type: "основне блюдо",
+          quantity: "приблизно 1 порція (примерно 220 грамм)",
+          calories_kcal: 320,
+          protein_g: 24,
+          fat_g: 14,
+          carbs_g: 28,
+          confidence: "low"
+        },
+        {
+          name: "Гарнір / джерело вуглеводів",
+          type: "гарнір",
+          quantity: "приблизно 1 порція (примерно 150 грамм)",
+          calories_kcal: 200,
+          protein_g: 5,
+          fat_g: 3,
+          carbs_g: 30,
+          confidence: "low"
+        }
+      ],
+      meal_totals: {
+        calories_kcal: 520,
+        protein_g: 29,
+        fat_g: 17,
+        carbs_g: 58
+      },
+      insights: [
+        "Mock-режим показує формат відповіді для редагування, але не аналізує реальне фото.",
+        "Для реального розпізнавання вимкніть AI_ANALYSIS_MOCK і задайте XAI_API_KEY."
+      ],
+      possible_risks: ["Оцінка калорій і вуглеводів по фото завжди приблизна."],
+      recommended_next_steps: ["Після реального аналізу відредагуйте кількість страв вручну, якщо AI помилився."],
+      confidence: "low",
+      medical_disclaimer: "Оцінка їжі по фото не є медичною рекомендацією і не розраховує дозу інсуліну."
+    };
+  }
+
+  return {
+    summary: "Демо-результат AI_ANALYSIS_MOCK=true. Реальний AI-аналіз не виконувався.",
+    extracted_values: [],
+    insights: ["Файл успішно отримано endpoint-ом AI-аналізу."],
+    possible_risks: ["Mock-режим не оцінює реальні ризики."],
+    recommended_next_steps: ["Вимкніть AI_ANALYSIS_MOCK і задайте XAI_API_KEY для реального аналізу."],
+    confidence: "low",
+    medical_disclaimer: "Це тестовий результат, не медична діагностика."
+  };
 }
 
 function getTemporaryUnavailableAnalysis(mode: AiModeId) {
