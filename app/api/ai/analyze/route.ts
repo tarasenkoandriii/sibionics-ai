@@ -99,6 +99,51 @@ function getMockAnalysis(mode: AiModeId) {
     };
   }
 
+
+
+  if (mode === "insulin_photo") {
+    return {
+      mode: "insulin_photo",
+      summary: "Демо-розпізнавання інсуліну: на фото умовно визначена інсулінова ручка. Тип і видима доза показані лише як приклад формату відповіді.",
+      extracted_values: [
+        {
+          label: "Видима доза",
+          value: "не визначено в mock-режимі",
+          unit: "одиниць",
+          confidence: "low"
+        }
+      ],
+      insulin_items: [
+        {
+          name: "Інсулінова ручка",
+          type: "unknown",
+          type_label: "тип не визначено",
+          visible_dose_units: "не видно",
+          dose_source: "mock-режим без реального аналізу фото",
+          confidence: "low"
+        }
+      ],
+      insulin_summary: {
+        detected_type: "unknown",
+        detected_type_label: "тип інсуліну не визначено",
+        visible_total_dose_units: "не видно",
+        confidence: "low"
+      },
+      insights: [
+        "Mock-режим показує формат відповіді для редагування, але не аналізує реальне фото.",
+        "Для реального розпізнавання вимкніть AI_ANALYSIS_MOCK і задайте XAI_API_KEY."
+      ],
+      possible_risks: [
+        "По фото можна помилитися у типі інсуліну або видимій дозі, особливо якщо шкала/етикетка нечитабельні."
+      ],
+      recommended_next_steps: [
+        "Перед будь-яким використанням звірте назву препарату і дозу з фактичною ручкою та призначенням лікаря."
+      ],
+      confidence: "low",
+      medical_disclaimer: "Розпізнавання фото не є медичною рекомендацією, не призначає інсулін і не розраховує дозу."
+    };
+  }
+
   return {
     summary: "Демо-результат AI_ANALYSIS_MOCK=true. Реальний AI-аналіз не виконувався.",
     extracted_values: [],

@@ -61,6 +61,33 @@ export const analysisSchema = {
       },
       required: ["calories_kcal", "protein_g", "fat_g", "carbs_g"]
     },
+    insulin_items: {
+      type: "array",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          name: { type: "string" },
+          type: { type: "string", enum: ["slow", "fast", "mixed", "both", "unknown"] },
+          type_label: { type: "string" },
+          visible_dose_units: { type: "string" },
+          dose_source: { type: "string" },
+          confidence: { type: "string", enum: ["low", "medium", "high"] }
+        },
+        required: ["name", "type", "type_label", "visible_dose_units", "dose_source", "confidence"]
+      }
+    },
+    insulin_summary: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        detected_type: { type: "string", enum: ["slow", "fast", "mixed", "both", "unknown"] },
+        detected_type_label: { type: "string" },
+        visible_total_dose_units: { type: "string" },
+        confidence: { type: "string", enum: ["low", "medium", "high"] }
+      },
+      required: ["detected_type", "detected_type_label", "visible_total_dose_units", "confidence"]
+    },
     confidence: { type: "string", enum: ["low", "medium", "high"] },
     medical_disclaimer: { type: "string" }
   },
@@ -111,6 +138,20 @@ const modePrompts: Record<AiModeId, string> = {
 6. В summary кратко перечисли основные блюда и общий итог калорий/углеводов.
 7. В insights добавь комментарий о вероятном влиянии на глюкозу: низкое/среднее/высокое, но без медицинских обещаний.
 8. Не рассчитывай дозу инсулина и не давай назначения. Укажи, что оценка приблизительная и ее нужно сверять с CGM/самочувствием.
+`,
+  insulin_photo: `
+Режим: фото инсулина, инсулиновой ручки, шприц-ручки, картриджа, упаковки или экрана/колесика дозы.
+Задачи:
+1. Определи, виден ли на фото инсулин или инсулиновая ручка. Если фото не относится к инсулину или текст/шкала нечитабельны, честно укажи низкую уверенность.
+2. Если возможно по названию, упаковке, цветовой маркировке или видимой этикетке, распознай тип: быстрый/ультракороткий, медленный/базальный, смешанный, оба типа на фото или неизвестно.
+3. Заполни insulin_items для каждого видимого препарата/ручки: name, type, type_label, visible_dose_units, dose_source, confidence.
+4. visible_dose_units — это только видимое на фото число единиц на шкале, ручке, этикетке или экране. Не рассчитывай и не рекомендуй дозу. Если дозу не видно, напиши "не видно".
+5. dose_source объясняет, откуда взята видимая доза: "колесико дозы", "этикетка", "надпись на упаковке", "не видно".
+6. В insulin_summary укажи общий вывод: detected_type, detected_type_label, visible_total_dose_units и confidence.
+7. В summary кратко напиши, что распознано, какой тип предполагается и какая доза только видна на фото, если она видна.
+8. В insights добавь, что результат нужно сверить с названием препарата, назначением врача и фактической ручкой перед использованием.
+9. В possible_risks укажи риск ошибки распознавания по фото, особенно при похожих ручках/упаковках, бликах, плохом фокусе и неполной видимости шкалы.
+10. Категорически не давай медицинских рекомендаций, не назначай инсулин и не говори, сколько единиц нужно вводить.
 `,
   labs_photo: `
 Режим: фото анализов HbA1c и других лабораторных показателей.
