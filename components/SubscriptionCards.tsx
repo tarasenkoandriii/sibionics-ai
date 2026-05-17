@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { getDictionary, type Locale } from "@/lib/i18n";
 import { SUBSCRIPTION_PLANS, type SubscriptionPlanId } from "@/lib/subscription-plans";
 
@@ -10,12 +10,66 @@ type CustomerDraft = {
   email: string;
 };
 
-export function SubscriptionCards({ locale }: { locale: Locale }) {
+type TelegramUserDraft = {
+  id?: number | string;
+  username?: string;
+  first_name?: string;
+  last_name?: string;
+};
+
+type SubscriptionCardsProps = {
+  locale: Locale;
+  telegramMiniApp?: boolean;
+  telegramUser?: TelegramUserDraft | null;
+};
+
+function getTelegramDisplayName(user?: TelegramUserDraft | null) {
+  if (!user) return "";
+  if (user.username) return `@${String(user.username).replace(/^@/, "")}`;
+  return [user.first_name, user.last_name].filter(Boolean).join(" ").trim();
+}
+
+function getTelegramPaymentSuffix(user?: TelegramUserDraft | null) {
+  const username = getTelegramDisplayName(user);
+  const telegramId = user?.id ? String(user.id) : "";
+  if (!username && !telegramId) return "";
+  return ` для ${username || "користувача Telegram"}${telegramId ? ` id#${telegramId}` : ""}`;
+}
+
+function openTelegramPaymentUrl(url: string) {
+  const webApp = typeof window !== "undefined" ? (window as any).Telegram?.WebApp : null;
+
+  if (webApp?.openLink) {
+    webApp.openLink(url);
+    return;
+  }
+
+  window.location.href = url;
+}
+
+export function SubscriptionCards({ locale, telegramMiniApp = false, telegramUser = null }: SubscriptionCardsProps) {
   const dict = getDictionary(locale);
   const [customer, setCustomer] = useState<CustomerDraft>({ name: "", phone: "", email: "" });
   const [loadingPlan, setLoadingPlan] = useState<SubscriptionPlanId | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const paymentTitle = useMemo(() => {
+    if (!telegramMiniApp) return dict.pricing.customer;
+    return `${dict.pricing.customer}${getTelegramPaymentSuffix(telegramUser)}`;
+  }, [dict.pricing.customer, telegramMiniApp, telegramUser]);
+
+  useEffect(() => {
+    if (!telegramMiniApp || !telegramUser) return;
+
+    const telegramName = getTelegramDisplayName(telegramUser);
+    if (!telegramName) return;
+
+    setCustomer((previous) => {
+      if (previous.name.trim()) return previous;
+      return { ...previous, name: telegramName };
+    });
+  }, [telegramMiniApp, telegramUser]);
 
   async function activatePlan(planId: SubscriptionPlanId) {
     setLoadingPlan(planId);
@@ -26,14 +80,25 @@ export function SubscriptionCards({ locale }: { locale: Locale }) {
       const response = await fetch("/api/subscriptions/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId, locale, customer })
+        body: JSON.stringify({
+          planId,
+          locale,
+          customer,
+          telegramId: telegramUser?.id ? String(telegramUser.id) : undefined,
+          telegramUsername: telegramUser?.username ? String(telegramUser.username).replace(/^@/, "") : undefined,
+          source: telegramMiniApp ? "telegram_payment_mini_app" : "pricing_page"
+        })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Subscription checkout failed");
 
       if (data.checkoutUrl) {
         setMessage(dict.pricing.success);
-        window.location.href = data.checkoutUrl;
+        if (telegramMiniApp) {
+          openTelegramPaymentUrl(data.checkoutUrl);
+        } else {
+          window.location.href = data.checkoutUrl;
+        }
       } else {
         setMessage(`${dict.common.active}: ${data.subscription?.subscriptionId || data.subscriptionId}`);
       }
@@ -51,7 +116,7 @@ export function SubscriptionCards({ locale }: { locale: Locale }) {
   return (
     <div className="subscription-section">
       <form className="customer-panel" onSubmit={onCustomerSubmit}>
-        <h3>{dict.pricing.customer}</h3>
+        <h3>{paymentTitle}</h3>
         <div className="form-grid three">
           <label>
             {dict.pricing.name}

@@ -24,7 +24,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     priceUah: 0,
     billingPeriod: "month",
     limits: { patients: 1, aiMessagesPerMonth: 30, cgmRetentionDays: 7 },
-    name: { ua: "Starter", ru: "Starter", pl: "Starter", en: "Starter" },
+    name: { ua: "Freemium", ru: "Freemium", pl: "Freemium", en: "Freemium" },
     description: {
       ua: "Демо для одного користувача",
       ru: "Демо для одного пользователя",
@@ -44,7 +44,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     billingPeriod: "month",
     limits: { patients: 1, aiMessagesPerMonth: 300, cgmRetentionDays: 90 },
     popular: true,
-    name: { ua: "Pro", ru: "Pro", pl: "Pro", en: "Pro" },
+    name: { ua: "Premium", ru: "Premium", pl: "Premium", en: "Premium" },
     description: {
       ua: "Для власника CGM і щоденного AI-супроводу",
       ru: "Для владельца CGM и ежедневного AI-сопровождения",

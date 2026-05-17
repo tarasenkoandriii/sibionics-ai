@@ -1,12 +1,13 @@
-ZIP with changed files for copying into the project root.
+Files for copying into the project root.
 
-Changed files:
-- app/insulin/InsulinMiniApp.tsx
-- app/globals.css
-- lib/ai-prompts.ts
+Changes included:
+- Pricing plan names changed:
+  - Starter -> Freemium
+  - Pro -> Premium
+- Added Telegram Mini App payment route: /payment
+- /payment initializes Telegram.WebApp, reads Telegram user data, and passes username/id to the payment UI.
+- The title "Дані для платежу" becomes "Дані для платежу для {username} id#{telegram_id}" when Telegram user data is available.
+- Paid subscription checkout in Telegram Mini App opens payment checkout with Telegram.WebApp.openLink(paymentUrl).
+- VoiceDoctor is hidden on /payment.
 
-Changes:
-- Renamed the main save button to "Записати назви та дози інсулінів".
-- Extracts slow/fast insulin names from Grok API response and fills the editable name inputs.
-- Keeps the newly created insulin name inputs editable.
-- Prompt updated to ask Grok to return the visible insulin/pen name in insulin_items.name.
+Copy these files into the root of the project, preserving paths.

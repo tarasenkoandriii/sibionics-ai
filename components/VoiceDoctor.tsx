@@ -16,7 +16,7 @@ function getLocaleFromPathname(pathname: string): Locale {
 
 function isMiniAppPath(pathname: string) {
   const normalizedPathname = pathname.replace(/\/+$|^$/g, "") || "/";
-  return normalizedPathname === "/order" || normalizedPathname === "/install" || normalizedPathname === "/meals" || normalizedPathname === "/insulin" || normalizedPathname.includes("/mini-app");
+  return normalizedPathname === "/order" || normalizedPathname === "/install" || normalizedPathname === "/meals" || normalizedPathname === "/insulin" || normalizedPathname === "/payment" || normalizedPathname.includes("/mini-app");
 }
 
 function isTelegramWebAppRuntime() {
