@@ -1,6 +1,13 @@
 "use client";
 
-import { ChangeEvent, Dispatch, KeyboardEvent, SetStateAction, useRef, useState } from "react";
+import {
+  ChangeEvent,
+  Dispatch,
+  KeyboardEvent,
+  SetStateAction,
+  useRef,
+  useState,
+} from "react";
 
 type InsulinItem = {
   name?: string;
@@ -66,7 +73,9 @@ function buildEditableText(result: InsulinAnalysisResult | null) {
   lines.push("Загальний висновок:");
   lines.push(`Тип: ${summary?.detected_type_label || "не визначено"}`);
   lines.push(`Видима доза: ${summary?.visible_total_dose_units || "не видно"}`);
-  lines.push(`Впевненість: ${summary?.confidence || result.confidence || "не визначено"}`);
+  lines.push(
+    `Впевненість: ${summary?.confidence || result.confidence || "не визначено"}`,
+  );
 
   const items = Array.isArray(result.insulin_items) ? result.insulin_items : [];
   if (items.length) {
@@ -105,13 +114,20 @@ function buildEditableText(result: InsulinAnalysisResult | null) {
   return lines.join("\n").trim();
 }
 
-function getInsulinTitle(result: InsulinAnalysisResult | null, fallbackIndex: number) {
+function getInsulinTitle(
+  result: InsulinAnalysisResult | null,
+  fallbackIndex: number,
+) {
   const summary = result?.insulin_summary;
-  const dose = summary?.visible_total_dose_units && summary.visible_total_dose_units !== "не видно"
-    ? ` · ${summary.visible_total_dose_units}`
-    : "";
+  const dose =
+    summary?.visible_total_dose_units &&
+    summary.visible_total_dose_units !== "не видно"
+      ? ` · ${summary.visible_total_dose_units}`
+      : "";
 
-  return summary?.detected_type_label ? `${summary.detected_type_label}${dose}` : `Інсулін ${fallbackIndex}`;
+  return summary?.detected_type_label
+    ? `${summary.detected_type_label}${dose}`
+    : `Інсулін ${fallbackIndex}`;
 }
 
 function parseDoseUnits(value?: string) {
@@ -124,7 +140,6 @@ function parseDoseUnits(value?: string) {
   const parsed = Number(match[0]);
   return Number.isFinite(parsed) ? Math.max(0, Math.round(parsed)) : 0;
 }
-
 
 function normalizeDoseInputValue(value: string) {
   if (value.trim() === "") return 0;
@@ -140,7 +155,7 @@ function clampDoseValue(value: number) {
 function updateDoseWithKeyboard(
   event: KeyboardEvent<HTMLInputElement>,
   currentValue: number,
-  setValue: (value: number) => void
+  setValue: (value: number) => void,
 ) {
   if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
 
@@ -153,11 +168,19 @@ function updateDoseWithKeyboard(
 function normalizeInsulinType(value?: string) {
   const normalized = (value || "").toLowerCase();
 
-  if (/(slow|long|basal|background|повіль|медлен|длитель|довг|пролонг|базал|тресиба|лантус|левемір|левемир|тужео)/.test(normalized)) {
+  if (
+    /(slow|long|basal|background|повіль|медлен|длитель|довг|пролонг|базал|тресиба|лантус|левемір|левемир|тужео)/.test(
+      normalized,
+    )
+  ) {
     return "slow";
   }
 
-  if (/(fast|rapid|short|bolus|meal|швид|быстр|коротк|ультра|новорапід|новорапид|хумалог|апідра|апидра|фіасп|фиасп)/.test(normalized)) {
+  if (
+    /(fast|rapid|short|bolus|meal|швид|быстр|коротк|ультра|новорапід|новорапид|хумалог|апідра|апидра|фіасп|фиасп)/.test(
+      normalized,
+    )
+  ) {
     return "fast";
   }
 
@@ -170,42 +193,138 @@ function normalizeInsulinType(value?: string) {
 
 function getDoseUnitsByType(result: InsulinAnalysisResult | null) {
   const summary = result?.insulin_summary;
-  const summaryType = normalizeInsulinType(`${summary?.detected_type || ""} ${summary?.detected_type_label || ""}`);
+  const summaryType = normalizeInsulinType(
+    `${summary?.detected_type || ""} ${summary?.detected_type_label || ""}`,
+  );
   const totalDose = parseDoseUnits(summary?.visible_total_dose_units);
 
-  const items = Array.isArray(result?.insulin_items) ? result?.insulin_items ?? [] : [];
+  const items = Array.isArray(result?.insulin_items)
+    ? (result?.insulin_items ?? [])
+    : [];
   const itemTotals = items.reduce(
     (totals, item) => {
       const dose = parseDoseUnits(item.visible_dose_units);
       if (!dose) return totals;
 
-      const itemType = normalizeInsulinType(`${item.type || ""} ${item.type_label || ""} ${item.name || ""}`);
+      const itemType = normalizeInsulinType(
+        `${item.type || ""} ${item.type_label || ""} ${item.name || ""}`,
+      );
       if (itemType === "slow") totals.slow += dose;
       if (itemType === "fast") totals.fast += dose;
 
       return totals;
     },
-    { slow: 0, fast: 0 }
+    { slow: 0, fast: 0 },
   );
 
   if (itemTotals.slow || itemTotals.fast) {
     return { ...itemTotals, detected: true };
   }
 
-  if (summaryType === "slow" && totalDose) return { slow: totalDose, fast: 0, detected: true };
-  if (summaryType === "fast" && totalDose) return { slow: 0, fast: totalDose, detected: true };
+  if (summaryType === "slow" && totalDose)
+    return { slow: totalDose, fast: 0, detected: true };
+  if (summaryType === "fast" && totalDose)
+    return { slow: 0, fast: totalDose, detected: true };
 
   return { slow: 0, fast: 0, detected: false };
+}
+
+function isVisibleInsulinName(value?: string) {
+  const normalized = value?.trim();
+  if (!normalized) return false;
+
+  return !/(не видно|невідом|неизвест|unknown|not visible)/i.test(normalized);
+}
+
+function findKnownInsulinName(text: string, type: "slow" | "fast") {
+  const patterns =
+    type === "slow"
+      ? [
+          /\b(tresiba)\b/i,
+          /\b(lantus)\b/i,
+          /\b(levemir)\b/i,
+          /\b(toujeo)\b/i,
+          /тресиб[аи]/i,
+          /лантус/i,
+          /левем[іи]р/i,
+          /тужео/i,
+        ]
+      : [
+          /\b(novorapid)\b/i,
+          /\b(fiasp)\b/i,
+          /\b(humalog)\b/i,
+          /\b(apidra)\b/i,
+          /новорап[іи]д/i,
+          /ф[іи]асп/i,
+          /хумалог/i,
+          /ап[іи]дра/i,
+        ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match?.[0]) return match[0];
+  }
+
+  return "";
+}
+
+function getInsulinNamesByType(result: InsulinAnalysisResult | null) {
+  const items = Array.isArray(result?.insulin_items)
+    ? (result?.insulin_items ?? [])
+    : [];
+
+  const names = items.reduce(
+    (currentNames, item) => {
+      const name = item.name?.trim();
+      const itemText = `${item.type || ""} ${item.type_label || ""} ${item.name || ""}`;
+      const itemType = normalizeInsulinType(itemText);
+
+      if (isVisibleInsulinName(name)) {
+        if (itemType === "slow" && !currentNames.slow)
+          currentNames.slow = name || "";
+        if (itemType === "fast" && !currentNames.fast)
+          currentNames.fast = name || "";
+      }
+
+      if (!currentNames.slow) {
+        const slowName = findKnownInsulinName(itemText, "slow");
+        if (slowName) currentNames.slow = slowName;
+      }
+
+      if (!currentNames.fast) {
+        const fastName = findKnownInsulinName(itemText, "fast");
+        if (fastName) currentNames.fast = fastName;
+      }
+
+      return currentNames;
+    },
+    { slow: "", fast: "" },
+  );
+
+  const allText = JSON.stringify(result ?? {});
+  if (!names.slow) names.slow = findKnownInsulinName(allText, "slow");
+  if (!names.fast) names.fast = findKnownInsulinName(allText, "fast");
+
+  return names;
 }
 
 type DoseStepperProps = {
   value: number;
   setValue: Dispatch<SetStateAction<number>>;
   label: string;
+  nameValue: string;
+  setNameValue: Dispatch<SetStateAction<string>>;
   onSave: () => void;
 };
 
-function DoseStepper({ value, setValue, label, onSave }: DoseStepperProps) {
+function DoseStepper({
+  value,
+  setValue,
+  label,
+  nameValue,
+  setNameValue,
+  onSave,
+}: DoseStepperProps) {
   const decrement = () => setValue((current) => clampDoseValue(current - 1));
   const increment = () => setValue((current) => clampDoseValue(current + 1));
   const clear = () => setValue(0);
@@ -213,6 +332,14 @@ function DoseStepper({ value, setValue, label, onSave }: DoseStepperProps) {
   return (
     <div className="insulin-dose-field">
       <span className="insulin-dose-label">{label}</span>
+      <input
+        type="text"
+        className="insulin-dose-test-input"
+        value={nameValue}
+        onChange={(event) => setNameValue(event.target.value)}
+        placeholder="Назва інсуліну"
+        aria-label={`Редагований текст для ${label}`}
+      />
       <div className="insulin-dose-stepper" role="group" aria-label={label}>
         <button
           type="button"
@@ -228,8 +355,14 @@ function DoseStepper({ value, setValue, label, onSave }: DoseStepperProps) {
           step="1"
           inputMode="numeric"
           value={value}
-          onChange={(event) => setValue(normalizeDoseInputValue(event.target.value))}
-          onKeyDown={(event) => updateDoseWithKeyboard(event, value, (nextValue) => setValue(nextValue))}
+          onChange={(event) =>
+            setValue(normalizeDoseInputValue(event.target.value))
+          }
+          onKeyDown={(event) =>
+            updateDoseWithKeyboard(event, value, (nextValue) =>
+              setValue(nextValue),
+            )
+          }
           aria-label={label}
         />
         <button
@@ -242,9 +375,13 @@ function DoseStepper({ value, setValue, label, onSave }: DoseStepperProps) {
         </button>
       </div>
       <div className="insulin-dose-stepper-actions">
-        <button type="button" onClick={clear}>Clear</button>
+        <button type="button" onClick={clear}>
+          Clear
+        </button>
         <span aria-hidden="true">|</span>
-        <button type="button" onClick={onSave}>Save</button>
+        <button type="button" onClick={onSave}>
+          Save
+        </button>
       </div>
     </div>
   );
@@ -258,6 +395,8 @@ export default function InsulinMiniApp() {
   const [entries, setEntries] = useState<InsulinEntry[]>([]);
   const [slowUnits, setSlowUnits] = useState(0);
   const [fastUnits, setFastUnits] = useState(0);
+  const [slowInsulinName, setSlowInsulinName] = useState("");
+  const [fastInsulinName, setFastInsulinName] = useState("");
 
   const openCamera = () => {
     setStatus("capturing");
@@ -278,42 +417,64 @@ export default function InsulinMiniApp() {
     try {
       const response = await fetch("/api/ai/analyze", {
         method: "POST",
-        body: formData
+        body: formData,
       });
-      const payload = (await response.json().catch(() => ({}))) as AiAnalyzeResponse;
+      const payload = (await response
+        .json()
+        .catch(() => ({}))) as AiAnalyzeResponse;
 
       if (!response.ok) {
-        const message = payload?.userMessage || payload?.error || "Не вдалося розпізнати інсулін. Спробуйте зробити чіткіше фото етикетки або шкали дози.";
+        const message =
+          payload?.userMessage ||
+          payload?.error ||
+          "Не вдалося розпізнати інсулін. Спробуйте зробити чіткіше фото етикетки або шкали дози.";
         throw new Error(message);
       }
 
       const apiResult = payload.result || null;
-      const apiWarning = payload?.code === "AI_TEMPORARILY_UNAVAILABLE" || payload?.fallback === "grok_capacity"
-        ? payload.warning || "Grok тимчасово перевантажений, тому показано fallback-відповідь. Для точного розпізнавання повторіть аналіз пізніше."
-        : null;
+      const apiWarning =
+        payload?.code === "AI_TEMPORARILY_UNAVAILABLE" ||
+        payload?.fallback === "grok_capacity"
+          ? payload.warning ||
+            "Grok тимчасово перевантажений, тому показано fallback-відповідь. Для точного розпізнавання повторіть аналіз пізніше."
+          : null;
 
       const detectedUnits = getDoseUnitsByType(apiResult);
+      const detectedNames = getInsulinNamesByType(apiResult);
 
       if (detectedUnits.detected) {
         setSlowUnits(detectedUnits.slow);
         setFastUnits(detectedUnits.fast);
       }
 
+      if (detectedNames.slow) setSlowInsulinName(detectedNames.slow);
+      if (detectedNames.fast) setFastInsulinName(detectedNames.fast);
+
       const entry: InsulinEntry = {
         id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-        createdAt: new Date().toLocaleString("uk-UA", { dateStyle: "short", timeStyle: "short" }),
+        createdAt: new Date().toLocaleString("uk-UA", {
+          dateStyle: "short",
+          timeStyle: "short",
+        }),
         title: getInsulinTitle(apiResult, entries.length + 1),
         editableText: buildEditableText(apiResult),
         result: apiResult,
         expanded: true,
-        warning: apiWarning
+        warning: apiWarning,
       };
 
-      setEntries((current) => [entry, ...current.map((item) => ({ ...item, expanded: false }))]);
+      setEntries((current) => [
+        entry,
+        ...current.map((item) => ({ ...item, expanded: false })),
+      ]);
       setWarning(apiWarning);
       setStatus("idle");
     } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : "Не вдалося розпізнати інсулін. Спробуйте повторити пізніше.");
+      setError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : "Не вдалося розпізнати інсулін. Спробуйте повторити пізніше.",
+      );
       setStatus("error");
     }
   };
@@ -331,11 +492,19 @@ export default function InsulinMiniApp() {
   };
 
   const toggleEntry = (id: string) => {
-    setEntries((current) => current.map((entry) => (entry.id === id ? { ...entry, expanded: !entry.expanded } : entry)));
+    setEntries((current) =>
+      current.map((entry) =>
+        entry.id === id ? { ...entry, expanded: !entry.expanded } : entry,
+      ),
+    );
   };
 
   const updateEntryText = (id: string, editableText: string) => {
-    setEntries((current) => current.map((entry) => (entry.id === id ? { ...entry, editableText } : entry)));
+    setEntries((current) =>
+      current.map((entry) =>
+        entry.id === id ? { ...entry, editableText } : entry,
+      ),
+    );
   };
 
   const deleteEntry = (id: string) => {
@@ -369,8 +538,9 @@ export default function InsulinMiniApp() {
         <span className="kicker">Grok Insulin AI</span>
         <h1>Мій інсулін</h1>
         <p>
-          Додавайте записи інсуліну прямо на сторінці: зробіть фото ручки, упаковки або шкали дози,
-          дочекайтесь розпізнавання Grok AI, перевірте результат і відредагуйте текст вручну.
+          Додавайте записи інсуліну прямо на сторінці: зробіть фото ручки,
+          упаковки або шкали дози, дочекайтесь розпізнавання Grok AI, перевірте
+          результат і відредагуйте текст вручну.
         </p>
       </section>
 
@@ -378,11 +548,18 @@ export default function InsulinMiniApp() {
         <div>
           <h2>Розпізнати інсулін</h2>
           <p>
-            Натисніть кнопку з фотоапаратом справа вгорі сторінки або кнопку нижче. Grok AI спробує визначити,
-            чи це швидкий, повільний, змішаний інсулін або обидва типи на фото, а також видиму дозу, якщо її можна прочитати.
+            Натисніть кнопку з фотоапаратом справа вгорі сторінки або кнопку
+            нижче. Grok AI спробує визначити, чи це швидкий, повільний, змішаний
+            інсулін або обидва типи на фото, а також видиму дозу, якщо її можна
+            прочитати.
           </p>
         </div>
-        <button type="button" className="btn btn-primary meals-mini-app-add-button" onClick={openCamera} disabled={status === "analyzing"}>
+        <button
+          type="button"
+          className="btn btn-primary meals-mini-app-add-button"
+          onClick={openCamera}
+          disabled={status === "analyzing"}
+        >
           📷 Розпізнати інсулін
         </button>
       </section>
@@ -398,27 +575,43 @@ export default function InsulinMiniApp() {
         <section className="meals-mini-app-card meals-inline-state meals-inline-error">
           <h2>Помилка розпізнавання</h2>
           <p>{error}</p>
-          <button type="button" className="btn btn-secondary" onClick={openCamera}>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={openCamera}
+          >
             Зробити інше фото
           </button>
         </section>
       )}
 
-      {warning && <section className="meals-mini-app-card meals-inline-warning">{warning}</section>}
+      {warning && (
+        <section className="meals-mini-app-card meals-inline-warning">
+          {warning}
+        </section>
+      )}
 
       <section className="meals-mini-app-card meals-inline-list-section">
         <h2>Результат распознавания AI</h2>
         {!entries.length && (
           <div className="meals-inline-empty">
             <p>Поки що немає доданих записів інсуліну.</p>
-            <p className="muted">Зробіть фото ручки або упаковки, щоб перший результат зʼявився тут як expandable block.</p>
+            <p className="muted">
+              Зробіть фото ручки або упаковки, щоб перший результат зʼявився тут
+              як expandable block.
+            </p>
           </div>
         )}
 
         <div className="meals-inline-list">
           {entries.map((entry) => (
             <article key={entry.id} className="meals-inline-entry">
-              <button type="button" className="meals-inline-entry-header" onClick={() => toggleEntry(entry.id)} aria-expanded={entry.expanded}>
+              <button
+                type="button"
+                className="meals-inline-entry-header"
+                onClick={() => toggleEntry(entry.id)}
+                aria-expanded={entry.expanded}
+              >
                 <span>
                   <strong>{entry.title}</strong>
                   <small>{entry.createdAt}</small>
@@ -428,18 +621,30 @@ export default function InsulinMiniApp() {
 
               {entry.expanded && (
                 <div className="meals-inline-entry-body">
-                  {entry.warning && <div className="meals-inline-warning">{entry.warning}</div>}
+                  {entry.warning && (
+                    <div className="meals-inline-warning">{entry.warning}</div>
+                  )}
                   <textarea
                     value={entry.editableText}
-                    onChange={(event) => updateEntryText(entry.id, event.target.value)}
+                    onChange={(event) =>
+                      updateEntryText(entry.id, event.target.value)
+                    }
                     rows={16}
                     aria-label="Результат распознавания AI"
                   />
                   <div className="meals-inline-entry-actions">
-                    <button type="button" className="btn btn-secondary" onClick={() => toggleEntry(entry.id)}>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => toggleEntry(entry.id)}
+                    >
                       Згорнути
                     </button>
-                    <button type="button" className="btn btn-danger" onClick={() => deleteEntry(entry.id)}>
+                    <button
+                      type="button"
+                      className="btn btn-danger"
+                      onClick={() => deleteEntry(entry.id)}
+                    >
                       Видалити
                     </button>
                   </div>
@@ -452,36 +657,58 @@ export default function InsulinMiniApp() {
 
       <section className="meals-mini-app-card meals-inline-summary insulin-dose-summary">
         <h2>Доза інсуліна(-ів)</h2>
-        <p className="muted">(за потреби відредагуйте)</p>
+        <p className="muted insulin-dose-subtitle">
+          за потреби відредагуйте відповідь AI
+        </p>
         <div className="meals-inline-summary-grid insulin-dose-summary-grid">
           <DoseStepper
             value={slowUnits}
             setValue={setSlowUnits}
             label="одиниць повільного"
-            onSave={() => setWarning("Дозу повільного інсуліну записано на цій сторінці. Перевірте значення перед використанням.")}
+            nameValue={slowInsulinName}
+            setNameValue={setSlowInsulinName}
+            onSave={() =>
+              setWarning(
+                "Назву та дозу повільного інсуліну записано на цій сторінці. Перевірте значення перед використанням.",
+              )
+            }
           />
           <DoseStepper
             value={fastUnits}
             setValue={setFastUnits}
             label="одиниць швидкого"
-            onSave={() => setWarning("Дозу швидкого інсуліну записано на цій сторінці. Перевірте значення перед використанням.")}
+            nameValue={fastInsulinName}
+            setNameValue={setFastInsulinName}
+            onSave={() =>
+              setWarning(
+                "Назву та дозу швидкого інсуліну записано на цій сторінці. Перевірте значення перед використанням.",
+              )
+            }
           />
         </div>
         <button
           type="button"
           className="btn btn-primary meals-mini-app-add-button"
-          onClick={() => setWarning("Дозу інсуліна(-ів) записано на цій сторінці. Перевірте значення перед використанням.")}
+          onClick={() =>
+            setWarning(
+              "Назви та дози інсуліна(-ів) записано на цій сторінці. Перевірте значення перед використанням.",
+            )
+          }
         >
-          Записати
+          Записати назви та дози інсулінів
         </button>
-        <p className="muted">Доза базується на відповідях AI та може бути відредагована вручну. Це не є медичною рекомендацією або розрахунком дози.</p>
+        <p className="muted">
+          Доза базується на відповідях AI та може бути відредагована вручну. Це
+          не є медичною рекомендацією або розрахунком дози.
+        </p>
       </section>
 
       <section className="meals-mini-app-card meals-inline-note">
         <h2>Важливо</h2>
         <p>
-          Розпізнавання інсуліну по фото може помилятися. Воно не призначає препарат, не рекомендує дозу і не замінює
-          призначення лікаря. Завжди звіряйте назву, тип і фактичну дозу вручну перед використанням.
+          Розпізнавання інсуліну по фото може помилятися. Воно не призначає
+          препарат, не рекомендує дозу і не замінює призначення лікаря. Завжди
+          звіряйте назву, тип і фактичну дозу вручну перед використанням.
         </p>
       </section>
     </main>

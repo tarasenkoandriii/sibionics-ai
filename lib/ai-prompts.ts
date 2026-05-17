@@ -15,22 +15,22 @@ export const analysisSchema = {
           label: { type: "string" },
           value: { type: "string" },
           unit: { type: "string" },
-          confidence: { type: "string", enum: ["low", "medium", "high"] }
+          confidence: { type: "string", enum: ["low", "medium", "high"] },
         },
-        required: ["label", "value", "unit", "confidence"]
-      }
+        required: ["label", "value", "unit", "confidence"],
+      },
     },
     insights: {
       type: "array",
-      items: { type: "string" }
+      items: { type: "string" },
     },
     possible_risks: {
       type: "array",
-      items: { type: "string" }
+      items: { type: "string" },
     },
     recommended_next_steps: {
       type: "array",
-      items: { type: "string" }
+      items: { type: "string" },
     },
     meal_items: {
       type: "array",
@@ -45,10 +45,19 @@ export const analysisSchema = {
           protein_g: { type: "number" },
           fat_g: { type: "number" },
           carbs_g: { type: "number" },
-          confidence: { type: "string", enum: ["low", "medium", "high"] }
+          confidence: { type: "string", enum: ["low", "medium", "high"] },
         },
-        required: ["name", "type", "quantity", "calories_kcal", "protein_g", "fat_g", "carbs_g", "confidence"]
-      }
+        required: [
+          "name",
+          "type",
+          "quantity",
+          "calories_kcal",
+          "protein_g",
+          "fat_g",
+          "carbs_g",
+          "confidence",
+        ],
+      },
     },
     meal_totals: {
       type: "object",
@@ -57,9 +66,9 @@ export const analysisSchema = {
         calories_kcal: { type: "number" },
         protein_g: { type: "number" },
         fat_g: { type: "number" },
-        carbs_g: { type: "number" }
+        carbs_g: { type: "number" },
       },
-      required: ["calories_kcal", "protein_g", "fat_g", "carbs_g"]
+      required: ["calories_kcal", "protein_g", "fat_g", "carbs_g"],
     },
     insulin_items: {
       type: "array",
@@ -68,28 +77,46 @@ export const analysisSchema = {
         additionalProperties: false,
         properties: {
           name: { type: "string" },
-          type: { type: "string", enum: ["slow", "fast", "mixed", "both", "unknown"] },
+          type: {
+            type: "string",
+            enum: ["slow", "fast", "mixed", "both", "unknown"],
+          },
           type_label: { type: "string" },
           visible_dose_units: { type: "string" },
           dose_source: { type: "string" },
-          confidence: { type: "string", enum: ["low", "medium", "high"] }
+          confidence: { type: "string", enum: ["low", "medium", "high"] },
         },
-        required: ["name", "type", "type_label", "visible_dose_units", "dose_source", "confidence"]
-      }
+        required: [
+          "name",
+          "type",
+          "type_label",
+          "visible_dose_units",
+          "dose_source",
+          "confidence",
+        ],
+      },
     },
     insulin_summary: {
       type: "object",
       additionalProperties: false,
       properties: {
-        detected_type: { type: "string", enum: ["slow", "fast", "mixed", "both", "unknown"] },
+        detected_type: {
+          type: "string",
+          enum: ["slow", "fast", "mixed", "both", "unknown"],
+        },
         detected_type_label: { type: "string" },
         visible_total_dose_units: { type: "string" },
-        confidence: { type: "string", enum: ["low", "medium", "high"] }
+        confidence: { type: "string", enum: ["low", "medium", "high"] },
       },
-      required: ["detected_type", "detected_type_label", "visible_total_dose_units", "confidence"]
+      required: [
+        "detected_type",
+        "detected_type_label",
+        "visible_total_dose_units",
+        "confidence",
+      ],
     },
     confidence: { type: "string", enum: ["low", "medium", "high"] },
-    medical_disclaimer: { type: "string" }
+    medical_disclaimer: { type: "string" },
   },
   required: [
     "mode",
@@ -99,8 +126,8 @@ export const analysisSchema = {
     "possible_risks",
     "recommended_next_steps",
     "confidence",
-    "medical_disclaimer"
-  ]
+    "medical_disclaimer",
+  ],
 } as const;
 
 const baseRules = `
@@ -144,7 +171,7 @@ const modePrompts: Record<AiModeId, string> = {
 Задачи:
 1. Определи, виден ли на фото инсулин или инсулиновая ручка. Если фото не относится к инсулину или текст/шкала нечитабельны, честно укажи низкую уверенность.
 2. Если возможно по названию, упаковке, цветовой маркировке или видимой этикетке, распознай тип: быстрый/ультракороткий, медленный/базальный, смешанный, оба типа на фото или неизвестно.
-3. Заполни insulin_items для каждого видимого препарата/ручки: name, type, type_label, visible_dose_units, dose_source, confidence.
+3. Заполни insulin_items для каждого видимого препарата/ручки: name, type, type_label, visible_dose_units, dose_source, confidence. В name обязательно укажи распознанное название препарата/ручки (например NovoRapid, Fiasp, Humalog, Lantus, Tresiba, Levemir, Toujeo), если оно видно; если название не видно, напиши "не видно".
 4. visible_dose_units — это только видимое на фото число единиц на шкале, ручке, этикетке или экране. Если инсулин находится в ручке FlexPen / flexpen / шприц-ручке с дозировочным окошком, дозой считается именно число, которое отображается напротив отметки/указателя в окошечке дозы. Не используй числа с этикетки концентрации, объема, срока годности или названия препарата как дозу введения. Не рассчитывай и не рекомендуй дозу. Если дозу не видно, напиши "не видно".
 5. dose_source объясняет, откуда взята видимая доза: "окошечко дозы FlexPen напротив отметки", "колесико дозы", "шкала шприц-ручки", "этикетка", "надпись на упаковке", "не видно".
 6. В insulin_summary укажи общий вывод: detected_type, detected_type_label, visible_total_dose_units и confidence.
@@ -160,7 +187,7 @@ const modePrompts: Record<AiModeId, string> = {
 2. Простыми словами объясни, что могут означать HbA1c, глюкоза натощак, липиды, креатинин и другие видимые показатели, не ставя диагноз.
 3. Отметь значения, которые стоит обсудить с врачом, особенно если они выходят за указанные на бланке референсы.
 4. Не предлагай лечение, лекарства или изменения дозировок.
-`
+`,
 };
 
 export function getAnalysisPrompt(mode: AiModeId) {

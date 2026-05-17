@@ -2954,10 +2954,33 @@ h3 {
 
 .insulin-dose-label {
   display: block;
-  color: #2563eb;
-  font-size: 16px;
-  font-weight: 700;
+  color: #0f62fe;
+  font-size: 19px;
+  font-weight: 800;
   line-height: 1.25;
+}
+
+.insulin-dose-subtitle {
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.insulin-dose-test-input {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid rgba(100, 116, 139, 0.28);
+  border-radius: 0;
+  background: #ffffff;
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 600;
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.insulin-dose-test-input:focus {
+  outline: 3px solid rgba(8, 183, 179, 0.18);
+  outline-offset: -3px;
 }
 
 @media (max-width: 520px) {
