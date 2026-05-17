@@ -34,7 +34,7 @@ export default function PaymentTelegramApp() {
     <main>
       <section className="page-hero compact">
         <div className="container">
-          <span className="kicker">Telegram Mini App</span>
+          <span className="kicker">Оплата підписки</span>
           <h1>{dict.pricing.title}</h1>
           <p className="lead">{dict.pricing.lead}</p>
         </div>

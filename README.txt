@@ -11,3 +11,7 @@ Changes included:
 - VoiceDoctor is hidden on /payment.
 
 Copy these files into the root of the project, preserving paths.
+
+Update:
+- /payment kicker text: Telegram Mini App -> Оплата підписки.
+- Payment data heading always appends Telegram username and id: Дані для платежу для {username} id#{telegram_id}.

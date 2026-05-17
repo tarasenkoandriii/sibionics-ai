@@ -30,10 +30,9 @@ function getTelegramDisplayName(user?: TelegramUserDraft | null) {
 }
 
 function getTelegramPaymentSuffix(user?: TelegramUserDraft | null) {
-  const username = getTelegramDisplayName(user);
-  const telegramId = user?.id ? String(user.id) : "";
-  if (!username && !telegramId) return "";
-  return ` для ${username || "користувача Telegram"}${telegramId ? ` id#${telegramId}` : ""}`;
+  const username = getTelegramDisplayName(user) || "користувача Telegram";
+  const telegramId = user?.id ? String(user.id) : "невідомий";
+  return ` для ${username} id#${telegramId}`;
 }
 
 function openTelegramPaymentUrl(url: string) {
