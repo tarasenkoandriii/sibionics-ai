@@ -1,17 +1,10 @@
-Files for copying into the project root.
+Files-only ZIP for payment Telegram Mini App update.
 
-Changes included:
-- Pricing plan names changed:
-  - Starter -> Freemium
-  - Pro -> Premium
-- Added Telegram Mini App payment route: /payment
-- /payment initializes Telegram.WebApp, reads Telegram user data, and passes username/id to the payment UI.
-- The title "Дані для платежу" becomes "Дані для платежу для {username} id#{telegram_id}" when Telegram user data is available.
-- Paid subscription checkout in Telegram Mini App opens payment checkout with Telegram.WebApp.openLink(paymentUrl).
-- VoiceDoctor is hidden on /payment.
+Copy these files into the project root.
 
-Copy these files into the root of the project, preserving paths.
-
-Update:
-- /payment kicker text: Telegram Mini App -> Оплата підписки.
-- Payment data heading always appends Telegram username and id: Дані для платежу для {username} id#{telegram_id}.
+Changes:
+- /payment route keeps title "Оплата підписки".
+- Payment block title is rendered as: "Дані для платежу для {username} id#{telegram_id}".
+- username and telegram_id are read from Telegram.WebApp.initDataUnsafe.user.
+- Added fallback parsing from Telegram.WebApp.initData when initDataUnsafe is not ready.
+- Added short retry loop after Telegram.WebApp.ready() so data appears after the Telegram SDK finishes initializing.
